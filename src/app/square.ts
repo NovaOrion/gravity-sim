@@ -18,8 +18,10 @@ export class Square {
     }
 
     constructor(private ctx: CanvasRenderingContext2D) {
-      this.y = Math.floor(Math.random() * (this.ctx.canvas.height / this.z));
-      this.x = Math.floor(Math.random() * (this.ctx.canvas.width / this.z));
+      console.log(this.ctx.canvas.width);
+      console.log(this.ctx.canvas.height);
+      this.y = Math.floor(Math.random() * (this.ctx.canvas.height - this.z));
+      this.x = Math.floor(Math.random() * (this.ctx.canvas.width/this.step));
       this.direction = Math.floor(Math.random() * 100) % 2 ? 1 : -1;
     }
   
@@ -44,7 +46,7 @@ export class Square {
   
     private draw() {
       this.ctx.fillStyle = this.color;
-      this.ctx.fillRect(this.step * this.x, this.step * this.y, this.z, this.z);
+      this.ctx.fillRect(this.step * this.x, this.y, this.z, this.z);
       
     }
 }

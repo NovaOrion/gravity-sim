@@ -11,12 +11,18 @@
 <mat-drawer-container class="content" autosize>
     <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen">
         <p>Parameters</p>   
-        <div class="param-field">
-            <label for="weight">Mass</label>
-            <mat-slider id="weight" showTickMarks discrete min="50" max="100" step="10" class="val">
+        <div class="param-field">            
+            <label for="fps">FPS <span class="label-dim">[{{fps}}]</span></label>
+            <mat-slider id="fps" showTickMarks discrete min="30" max="60" step="30" class="val">
+                <input matSliderThumb [(ngModel)]="fps" >
+            </mat-slider>
+        </div>        
+        <div class="param-field">            
+            <label for="mass">Mass <span class="label-dim">[{{mass}}kg]</span></label>
+            <mat-slider id="mass" showTickMarks discrete min="50" max="100" step="10" class="val">
                 <input matSliderThumb [(ngModel)]="mass" >
             </mat-slider>
-        </div>
+        </div>        
         <div class="param-field">
             <label for="planet">Jump On</label>
             <mat-select id="planet" [(ngModel)]="gravity" name="food" class="val">
@@ -31,8 +37,11 @@
     </div>
 </mat-drawer-container>
 <div class="footer">
-    <button mat-raised-button color="primary" class="footer-button" (click)="play()">
+    <button mat-raised-button color="primary" class="footer-button" (click)="addSquare()">
         Add Square
+    </button>
+    <button mat-raised-button color="primary" class="footer-button" (click)="clearAllSquares()">
+       Clear All
     </button>
     <mat-slide-toggle [(ngModel)]="isSideNavOpen" [title]="isSideNavOpen?'Toggle to close Side Panel':'Toggle to open Side Panel'"></mat-slide-toggle>    
 </div> 

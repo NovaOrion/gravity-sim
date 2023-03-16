@@ -11,11 +11,15 @@ import { Square } from './square';
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stage', { static: true }) canvas!: ElementRef<HTMLCanvasElement>;
   public ctx: CanvasRenderingContext2D | null = null;
-  private requestId: number = 0;
-  title = 'Maria Gravity Project';  
-  public mass=60;
+
+  public title = 'Maria Gravity Project';  
+  public mass = 60;
+  public fps = 30;
   public isSideNavOpen=true;
-  public interval: any;
+  public timeoutId: any;
+  private requestId: number = 0;
+
+
   public celestial_bodies = [
     {
       name: "Earth",
@@ -50,17 +54,26 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {    
     this.ctx = this.canvas.nativeElement.getContext("2d");
-    this.zone.runOutsideAngular(() => this.animate());
-    this.interval = setInterval(() => this.animate(), 100);
+    this.setCanvasSize();
+    this.zone.runOutsideAngular(() =>     
+      this.animate()
+    );
+    //this.interval = setInterval(() => this.animate(), 100);
 
-    this.play();
+    this.addSquare();
   }
 
-  public play() {
+  public addSquare() {
     if (!this.ctx) return;
     const square = new Square(this.ctx);
     this.squares = this.squares.concat(square);
   }
+  
+  public clearAllSquares() {
+    if (!this.ctx) return;
+    this.squares = [];
+  }
+
 
   public clear() {
     if (!this.ctx) return;
@@ -101,11 +114,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.squares.forEach((sq: Square) => {
       sq.moveRight();
     })
-    this.requestId = requestAnimationFrame(() => this.animate);
+
+    this.requestId = requestAnimationFrame(() => {
+      this.timeoutId = _.delay(() => this.animate(), 1000/this.fps);
+    });
   }
 
   public ngOnDestroy(): void {
-    clearInterval(this.interval);
+    clearTimeout(this.timeoutId);
     cancelAnimationFrame(this.requestId);
   }
 
