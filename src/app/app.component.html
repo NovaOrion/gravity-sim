@@ -1,0 +1,38 @@
+<mat-toolbar color="primary">
+    <span>Welcom to Maria's Gravity project</span>
+    <span class="spacer"></span>
+    <button mat-icon-button (click)="favorite($event)">
+        <mat-icon>favorite</mat-icon>
+    </button>
+    <button mat-icon-button>
+        <mat-icon>share</mat-icon>  
+    </button>
+</mat-toolbar>
+<mat-drawer-container class="content" autosize>
+    <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen">
+        <p>Parameters</p>   
+        <div class="param-field">
+            <label for="weight">Mass</label>
+            <mat-slider id="weight" showTickMarks discrete min="50" max="100" step="10" class="val">
+                <input matSliderThumb [(ngModel)]="mass" >
+            </mat-slider>
+        </div>
+        <div class="param-field">
+            <label for="planet">Jump On</label>
+            <mat-select id="planet" [(ngModel)]="gravity" name="food" class="val">
+                <mat-option *ngFor="let body of celestial_bodies" [value]="body.gravity">
+                    {{body.name}}
+                </mat-option>
+            </mat-select>
+        </div>
+    </mat-drawer>
+    <div class="sidenav-content" (resized)="resize()">
+        <canvas #stage id="stage"></canvas>        
+    </div>
+</mat-drawer-container>
+<div class="footer">
+    <button mat-raised-button color="primary" class="footer-button" (click)="play()">
+        Add Square
+    </button>
+    <mat-slide-toggle [(ngModel)]="isSideNavOpen" [title]="isSideNavOpen?'Toggle to close Side Panel':'Toggle to open Side Panel'"></mat-slide-toggle>    
+</div> 
