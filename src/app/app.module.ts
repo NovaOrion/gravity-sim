@@ -11,6 +11,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { AngularResizeEventModule } from 'angular-resize-event';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { FormsModule } from '@angular/forms';
 
@@ -30,7 +31,8 @@ import { FormsModule } from '@angular/forms';
     MatSidenavModule,
     MatSelectModule,
     MatFormFieldModule,
-    AngularResizeEventModule
+    AngularResizeEventModule,
+    MatTooltipModule
   ],
   providers: [],
   bootstrap: [AppComponent]

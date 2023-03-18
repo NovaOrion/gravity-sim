@@ -1,11 +1,11 @@
 <mat-toolbar color="primary">
-    <span>Welcom to Maria's Gravity project</span>
+    <span>Maria's Gravity Sim</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="favorite($event)">
-        <mat-icon>favorite</mat-icon>
+    <button mat-icon-button matTooltip="EarthView">
+        <i class="fa-solid fa-earth-americas"></i>
     </button>
-    <button mat-icon-button>
-        <mat-icon>share</mat-icon>  
+    <button mat-icon-button matTooltip="SpaceView">
+        <i class="fa-solid fa-meteor"></i> 
     </button>
 </mat-toolbar>
 <mat-drawer-container class="content" autosize>
