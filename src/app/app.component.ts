@@ -70,7 +70,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         body.image = img;
         resolve();
       };
-      img.src =  'assets/celestial_bodies/' + (body.imageUrl || body.name.toLocaleLowerCase()) + '.jpg';
+      img.src =  'assets/celestial_bodies/' + (body.imageUrl || body.name.toLowerCase()) + '.jpg';
     });
   }
 
