@@ -25,8 +25,8 @@
         </div>        
         <div class="param-field">
             <label for="planet">Jump On</label>
-            <mat-select id="planet" [(ngModel)]="gravity" name="food" class="val">
-                <mat-option *ngFor="let body of celestial_bodies" [value]="body.gravity">
+            <mat-select id="planet" [ngModel]="selectedBodyName" (ngModelChange)="onSelectedBodyChanged($event)" name="food" class="val">
+                <mat-option *ngFor="let body of celestial_bodies" [value]="body.name">
                     {{body.name}}
                 </mat-option>
             </mat-select>

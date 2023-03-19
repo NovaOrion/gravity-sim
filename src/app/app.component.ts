@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
-
 import * as _ from 'lodash';
+import { CELESTIAL_BODIES, ICelestialBody } from 'src/common/common';
 import { Square } from './square';
 
 @Component({
@@ -17,31 +17,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public fps = 30;
   public isSideNavOpen=true;
   public timeoutId: any;
-  private requestId: number = 0;
-
-
-  public celestial_bodies = [
-    {
-      name: "Earth",
-      gravity: 9.8
-    },
-    {
-      name: "Moon",
-      gravity: 1.6
-    },
-    {
-      name: "Mars",
-      gravity: 3.7
-    },
-    {
-      name: "Venus",
-      gravity: 8.87
-    },
-    {
-      name: "Jupiter",
-      gravity: 24.5
-    }    
-  ];
+  private requestId: number = 0;  
+  public celestial_bodies: ICelestialBody[] = CELESTIAL_BODIES;
+  public selectedBodyName: string = _.find(this.celestial_bodies, x => x.name === 'Mars')!.name;
   squares: Square[] = [];
 
   public gravity = _.first(this.celestial_bodies)?.gravity;
@@ -52,9 +30,54 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   constructor(private zone: NgZone) {    
   }
 
+  public get selectedBody(): ICelestialBody | undefined {
+    if (!this.selectedBodyName) return undefined;
+    return _.find(this.celestial_bodies, x => x.name === this.selectedBodyName)!;
+  }
+
+  public onSelectedBodyChanged(name: string) {
+    this.selectedBodyName = name;
+    const body = this.selectedBody;
+    if (body && !body.image) {
+        this.loadImage(body).then();
+    }
+  } 
+
+  public drawAndFitBody(body: ICelestialBody) {
+    if (!this.ctx || !body.image) {
+      return;
+    }    
+    const img = body.image;
+    const cwidth = this.ctx.canvas.width;
+    const cheight = this.ctx.canvas.height;
+    
+    const scale_factor = Math.min(cwidth / img.width, cheight / img.height);
+    const width = img.width * scale_factor;
+    const height = img.height * scale_factor;
+    const x = cwidth / 2 - width / 2;
+    const y = cheight / 2 - height / 2;
+    this.ctx.drawImage(img, x, y, width, height);
+  }
+
+  public async loadImage(body: ICelestialBody): Promise<void> {
+    return new Promise<void>((resolve, reject) => {              
+      const img = new Image();
+      img.onload = () => {
+        if (!this.ctx) {
+          reject();
+          return;
+        }    
+        body.image = img;
+        resolve();
+      };
+      img.src =  'assets/celestial_bodies/' + (body.imageUrl || body.name.toLocaleLowerCase()) + '.jpg';
+    });
+  }
+
   ngAfterViewInit(): void {    
     this.ctx = this.canvas.nativeElement.getContext("2d");
     this.setCanvasSize();
+    this.loadImage(this.selectedBody!);
     this.zone.runOutsideAngular(() =>     
       this.animate()
     );
@@ -82,14 +105,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   public draw() {    
     if (!this.ctx) return;
-    this.ctx.strokeStyle="#FFFFFF";
-    this.ctx.beginPath();
-    this.ctx.arc(100,100,50,0,2*Math.PI);
-    this.ctx.stroke();
+    
+    if (this.selectedBodyName) {
+      this.drawAndFitBody(this.selectedBody!);
+    }
 
     this.ctx.beginPath();
-    this.ctx.lineWidth = 3;
-    this.ctx.strokeStyle = "#999";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeStyle = "pink";
     this.ctx.rect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height); 
     this.ctx.stroke();
   }
