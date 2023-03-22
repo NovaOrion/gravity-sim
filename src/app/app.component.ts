@@ -29,7 +29,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   public start(): void {
-    const r = 15;
+    const r = 5;
     this.scene
       ?.add(new Ball("ball1", { x: Math.random() * (this.world - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "yellow"))
       .add(new Ball("ball2", { x: Math.random() * (this.world - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "red"))
