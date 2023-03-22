@@ -18,10 +18,43 @@ export interface IScene {
     update(obj: ISceneObject | ISceneObject[]): IScene;
     clear(): IScene;
     draw(): void;
+    X(x: number): number;
+    Y(y: number): number;
+    scale: number;
+    VisibleWorldHeight: number;
 }
-export class Scene implements IScene {
+export interface IPoint {
+    x: number;
+    y: number;
+}
+export interface IRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
-    constructor(public ctx: CanvasRenderingContext2D) {}
+export class Scene implements IScene {
+    
+    constructor(public ctx: CanvasRenderingContext2D, public world: number) {        
+    }
+
+    public get scale(): number {
+        return this.ctx.canvas.width / this.world;
+    }
+
+    public X(x: number) {      
+        return Math.round(this.scale * x);
+    }
+
+    public Y(y: number) {
+        const sh = this.ctx.canvas.height;       
+        return sh - Math.round(this.scale * y);
+    }
+
+    public get VisibleWorldHeight(): number { 
+        return this.ctx.canvas.height / this.scale;
+    }
 
     // collection of all scene's objects to animate
     public objects = OrderedMap<string, ISceneObject>();
@@ -102,7 +135,6 @@ export class Scene implements IScene {
     public get height(): number {
         return this.ctx.canvas.height;
     }
-
 } 
 
 export class Background implements ISceneObject {
@@ -112,6 +144,6 @@ export class Background implements ISceneObject {
     delta(scene: IScene) {}
 
     draw(scene: IScene) {
-        const w = scene.ctx.canvas.width
+        
     }
 }

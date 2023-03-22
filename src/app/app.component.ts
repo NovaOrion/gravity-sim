@@ -1,6 +1,9 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as _ from 'lodash';
 import { CELESTIAL_BODIES, ICelestialBody } from 'src/common/common';
+import { Ball } from 'src/papa/ball';
+import { Box } from 'src/papa/box';
+import { IScene, Scene } from 'src/papa/scene';
 import { Square } from './square';
 
 @Component({
@@ -23,6 +26,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   squares: Square[] = [];
 
   public gravity = _.first(this.celestial_bodies)?.gravity;
+
+  public scene: IScene | null = null;
+
   public favorite(event: any) {
     window.alert("YAAAAA!")
   } 
@@ -78,12 +84,23 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.ctx = this.canvas.nativeElement.getContext("2d");
     this.setCanvasSize();
     this.loadImage(this.selectedBody!);
+
+    // SCENE
+    const world  = 1000;
+    const r = 15;
+    this.scene = new Scene(this.ctx!, 1000);
+    this.scene
+      .add(new Ball("ball1", { x: Math.random() * (1000 - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "yellow"))
+      .add(new Ball("ball2", { x: Math.random() * (1000 - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "red"))
+      .add(new Ball("ball3", { x: Math.random() * (1000 - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "green"));
+
+
     this.zone.runOutsideAngular(() =>     
       this.animate()
     );
     //this.interval = setInterval(() => this.animate(), 100);
 
-    this.addSquare();
+    //this.addSquare();
   }
 
   public addSquare() {
@@ -115,6 +132,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.ctx.strokeStyle = "pink";
     this.ctx.rect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height); 
     this.ctx.stroke();
+
+    this.scene?.draw();
+
   }
 
   public resize() {
