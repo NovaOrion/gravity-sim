@@ -25,9 +25,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     window.alert("YAAAAA!")
   } 
 
+  /**
+   * Constructor for main app component
+   * @param zone NG zone
+   */
   constructor(private zone: NgZone) {    
   }
 
+  /**
+   * Start Simulation
+   */
   public start(): void {
     const r = 5;
     this.scene
@@ -36,10 +43,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       .add(new Ball("ball3", { x: Math.random() * (this.world - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "green"));
   }
 
+  /**
+   * Stop Simulation
+   */
   public stop(): void {
     this.scene?.clear();
   }
 
+  /**
+   * The DOM is loaded and all bindings are available
+   */
   ngAfterViewInit(): void {    
     this.ctx = this.canvas.nativeElement.getContext("2d");
     this.setCanvasSize();
@@ -51,12 +64,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  public clear() {
+  /**
+   * Clear canvas
+   */
+  public clear(): void {
     if (!this.ctx) return;
     this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
   }
 
-  public draw() {    
+  /**
+   * Draw background and all scene objects
+   * Internally, every object calls it's delta method before drawing
+   */
+  public draw(): void {    
     if (!this.ctx) return;
     this.ctx.beginPath();
     this.ctx.lineWidth = 2;
@@ -66,12 +86,18 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.scene?.draw();
   }
 
-  public resize() {
+  /**
+   * Resize canvas and scene
+   */
+  public resize(): void {
     this.setCanvasSize();
     this.draw();
   }
 
-  protected setCanvasSize() {
+  /**
+   * Setting Canvas size based on parent element
+   */
+  protected setCanvasSize(): void {
     if (!this.canvas) return;
     const parent: HTMLElement | null = this.canvas.nativeElement.parentElement;
     if (!parent) return;
@@ -80,7 +106,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.canvas.nativeElement.height = rect.height;
   }
 
-  protected animate() {
+  /**
+   * Animation loop
+   */
+  protected animate(): void {
     this.clear();
     this.draw();
     this.requestId = requestAnimationFrame(() => {
@@ -88,6 +117,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Called on closing web application
+   */
   public ngOnDestroy(): void {
     clearTimeout(this.timeoutId);
     cancelAnimationFrame(this.requestId);
