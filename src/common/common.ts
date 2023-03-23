@@ -1,13 +1,19 @@
+import {OrderedMap} from 'immutable';
+
 export interface ISceneObject {
     name: string;
     enabled: boolean;
     position: IPoint;
     trace?: boolean;
+    trace_limit?: number;
     delta(scene: IScene): void;
+    collide(scene: IScene): void;
     draw(scene: IScene): void;
+    draw_trace(scene: IScene): void;
 }
 export interface IScene {
     ctx: CanvasRenderingContext2D;
+    objects: OrderedMap<string, ISceneObject>;
     add(obj: ISceneObject): IScene;
     remove(name: string): IScene;
     hide(name: string): IScene;
@@ -15,6 +21,7 @@ export interface IScene {
     hideAllButOne(name: string): IScene;
     updateByKey(name: string, obj: ISceneObject): IScene;
     update(obj: ISceneObject | ISceneObject[]): IScene;
+    updateWithCondition(condition: (obj: ISceneObject) => boolean, map: (obj: ISceneObject) => ISceneObject): void;
     clear(): IScene;
     draw(): void;
     resize(): void;
@@ -24,6 +31,9 @@ export interface IScene {
     VisibleWorldHeight: number;
     width: number;
     height: number;
+    gravity: number;
+    elasticity: number;
+    friction: number;
 }
 export interface IPoint {
     x: number;
@@ -35,7 +45,25 @@ export interface IRect {
     width: number;
     height: number;
 }
+export interface ISize {
+    width: number;
+    height: number;
+}
 export interface IVector {
     start: IPoint;
     end: IPoint;
+}
+export interface ICircle {
+    center: IPoint;
+    radius: number;
+}
+export function hitTestCircle(c1: ICircle, c2: ICircle): boolean {
+    let result = false;
+    const dx = c1.center.x - c2.center.x;
+    const dy = c1.center.y - c2.center.y;
+    const distance = (dx*dx + dy*dy);
+    if (distance <= (c1.radius + c2.radius) * (c1.radius + c2.radius)) {
+        result = true;
+    }
+    return result;
 }

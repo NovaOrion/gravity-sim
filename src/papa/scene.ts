@@ -6,7 +6,12 @@ export class Scene implements IScene {
     
     protected sceneWidth: number = 0;
     protected sceneHeight: number = 0;
-    protected padding: number = 0;
+    protected padding: number = 0;  
+    public gravity: number = 0;
+    public elasticity: number = 0;
+    public friction: number = 0;
+
+    public objects = OrderedMap<string, ISceneObject>();    
 
     constructor(public ctx: CanvasRenderingContext2D, public world: number, padding: number) { 
         this.padding = padding; 
@@ -26,17 +31,15 @@ export class Scene implements IScene {
         return Math.round(this.scale * x) + this.padding;
     }
 
-    public Y(y: number) {
-        const sh = this.sceneHeight;       
-        return sh - Math.round(this.scale * y);
+    public Y(y: number) {      
+        return this.ctx?.canvas.height - this.padding - Math.round(this.scale * y);
     }
 
     public get VisibleWorldHeight(): number { 
         return this.sceneHeight / this.scale;
     }
 
-    // collection of all scene's objects to animate
-    public objects = OrderedMap<string, ISceneObject>();
+    
 
     // add to scene collection
     public add(obj: ISceneObject): IScene {
@@ -94,6 +97,12 @@ export class Scene implements IScene {
         return this;
     }
 
+    public updateWithCondition(condition: (obj: ISceneObject) => boolean, map: (obj: ISceneObject) => ISceneObject): void {
+        const filtered = this.objects.filter(condition).valueSeq().toArray();
+        const remapped = filtered.map(map);
+        this.update(remapped);
+    }
+
     // remove all objects from scene
     public clear(): IScene {
         this.objects = this.objects.clear();
@@ -101,10 +110,12 @@ export class Scene implements IScene {
     }
 
     // calculate delta and draw for each objects in scene in ordered manner
-    public draw(): void {
+    public draw(): void {        
+        this.objects.forEach(x => x.delta(this));
+        this.objects.forEach(x => x.collide(this));
         const filtered = this.objects.filter(x => x.enabled);
-        filtered.forEach(x => x.delta(this));
-        filtered.forEach(X => X.draw(this));
+        filtered.forEach(x => x.draw_trace(this));
+        filtered.forEach(x => x.draw(this));
     }
 
     public get width(): number {
