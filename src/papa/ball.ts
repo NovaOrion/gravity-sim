@@ -66,11 +66,13 @@ export class Ball extends BaseObject implements ICircle {
             this.y_velocity = -1 * this.y_velocity;
             this.position.y = scene.VisibleWorldHeight - bh;
         } else if (scene.Y(this.position.y - bh) >= scene.Y(0)) {
-            if (scene && scene.elasticity) {
+            if (scene && scene.gravity && scene.elasticity) {
                 this.y_velocity = -1 * this.y_velocity * scene.elasticity;
+            } else {
+                this.y_velocity = -1 * this.y_velocity;
             }
-            if (scene && scene.friction) {
-                this.x_velocity = this.x_velocity -  (this.x_velocity * scene.friction);
+            if (scene && scene.gravity && scene.friction) {
+                this.x_velocity = this.x_velocity - (this.x_velocity * scene.friction);
             } 
             this.position.y = bh;
         }
