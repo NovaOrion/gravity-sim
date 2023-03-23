@@ -29,10 +29,10 @@
     </div>
 </mat-drawer-container>
 <div class="footer">
-    <button mat-raised-button color="primary" class="footer-button" (click)="start()">
+    <button mat-raised-button color="primary" class="footer-button" [disabled]="playing" (click)="start()">
        Start
     </button>
-    <button mat-raised-button color="primary" class="footer-button" (click)="stop()">
+    <button mat-raised-button color="primary" class="footer-button" [disabled]="!playing" (click)="stop()">
         Stop
      </button>
     <mat-slide-toggle [(ngModel)]="isSideNavOpen" [title]="isSideNavOpen?'Toggle to close Side Panel':'Toggle to open Side Panel'"></mat-slide-toggle>    

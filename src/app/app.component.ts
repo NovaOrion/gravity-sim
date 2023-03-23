@@ -1,7 +1,8 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
 import * as _ from 'lodash';
+import { IScene } from 'src/common/common';
 import { Ball } from 'src/papa/ball';
-import { IScene, Scene } from 'src/papa/scene';
+import { Scene } from 'src/papa/scene';
 
 @Component({
   selector: 'app-root',
@@ -18,8 +19,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public isSideNavOpen=true;
   public timeoutId: any;
   private requestId: number = 0;  
-
+  public playing: boolean = false;
   public scene: IScene | null = null;
+  public borderSize: number = 2;
 
   public favorite(event: any) {
     window.alert("YAAAAA!")
@@ -38,9 +40,24 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public start(): void {
     const r = 5;
     this.scene
-      ?.add(new Ball("ball1", { x: Math.random() * (this.world - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "yellow"))
-      .add(new Ball("ball2", { x: Math.random() * (this.world - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "red"))
-      .add(new Ball("ball3", { x: Math.random() * (this.world - r/2), y: Math.random() * (this.scene.VisibleWorldHeight - r/2) }, r, "green"));
+      ?.add(new Ball("ball1", {
+        center: { x:0, y: 0 },
+        radius: r, 
+        color: "yellow",
+        speed: 5,
+        angle: Math.random() * 90,
+        trace: true
+      }))
+      .add(new Ball("ball2", {
+        center: { x: 0, y: 0 },
+        radius: r, 
+        color: "green",
+        speed: 5,
+        angle: Math.random() * 90,
+        trace: true
+      }));
+      
+    this.playing = true;
   }
 
   /**
@@ -48,6 +65,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
    */
   public stop(): void {
     this.scene?.clear();
+    this.playing = false;
   }
 
   /**
@@ -57,7 +75,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.ctx = this.canvas.nativeElement.getContext("2d");
     this.setCanvasSize();
     
-    this.scene = new Scene(this.ctx!, this.world);
+
+    // Scene initialization
+    this.scene = new Scene(this.ctx!, this.world, this.borderSize);
     
     this.zone.runOutsideAngular(() =>     
       this.animate()
@@ -79,9 +99,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public draw(): void {    
     if (!this.ctx) return;
     this.ctx.beginPath();
-    this.ctx.lineWidth = 2;
-    this.ctx.strokeStyle = "pink";
+    this.ctx.lineWidth = this.borderSize;    
     this.ctx.rect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height); 
+    this.ctx.fillStyle = "black";
+    this.ctx.fill();
+    this.ctx.strokeStyle = "white";
     this.ctx.stroke();
     this.scene?.draw();
   }
@@ -91,6 +113,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
    */
   public resize(): void {
     this.setCanvasSize();
+    this.scene?.resize();
     this.draw();
   }
 

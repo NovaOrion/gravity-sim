@@ -1,59 +1,38 @@
 import {OrderedMap} from 'immutable';
 import * as _ from 'lodash';
-
-export interface ISceneObject {
-    name: string;
-    enabled: boolean;
-    delta(scene: IScene): void;
-    draw(scene: IScene): void;
-}
-export interface IScene {
-    ctx: CanvasRenderingContext2D;
-    add(obj: ISceneObject): IScene;
-    remove(name: string): IScene;
-    hide(name: string): IScene;
-    show(name: string): IScene;
-    hideAllButOne(name: string): IScene;
-    updateByKey(name: string, obj: ISceneObject): IScene;
-    update(obj: ISceneObject | ISceneObject[]): IScene;
-    clear(): IScene;
-    draw(): void;
-    X(x: number): number;
-    Y(y: number): number;
-    scale: number;
-    VisibleWorldHeight: number;
-}
-export interface IPoint {
-    x: number;
-    y: number;
-}
-export interface IRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
+import { IScene, ISceneObject } from 'src/common/common';
 
 export class Scene implements IScene {
     
-    constructor(public ctx: CanvasRenderingContext2D, public world: number) {        
+    protected sceneWidth: number = 0;
+    protected sceneHeight: number = 0;
+    protected padding: number = 0;
+
+    constructor(public ctx: CanvasRenderingContext2D, public world: number, padding: number) { 
+        this.padding = padding; 
+        this.resize();
+    }
+
+    public resize(): void {
+        this.sceneWidth = this.ctx?.canvas.width - 2 * this.padding;
+        this.sceneHeight = this.ctx?.canvas.height - 2 * this.padding;
     }
 
     public get scale(): number {
-        return this.ctx.canvas.width / this.world;
+        return this.sceneWidth / this.world;
     }
 
     public X(x: number) {      
-        return Math.round(this.scale * x);
+        return Math.round(this.scale * x) + this.padding;
     }
 
     public Y(y: number) {
-        const sh = this.ctx.canvas.height;       
+        const sh = this.sceneHeight;       
         return sh - Math.round(this.scale * y);
     }
 
     public get VisibleWorldHeight(): number { 
-        return this.ctx.canvas.height / this.scale;
+        return this.sceneHeight / this.scale;
     }
 
     // collection of all scene's objects to animate
@@ -129,21 +108,10 @@ export class Scene implements IScene {
     }
 
     public get width(): number {
-        return this.ctx.canvas.width;
+        return this.sceneWidth;
     }
 
     public get height(): number {
-        return this.ctx.canvas.height;
-    }
-} 
-
-export class Background implements ISceneObject {
-    public enabled: boolean = true;
-    constructor(public name: string){}
-
-    delta(scene: IScene) {}
-
-    draw(scene: IScene) {
-        
+        return this.sceneHeight;
     }
 }
