@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as _ from 'lodash';
-import { hitTestCircle, ICircle, IScene, ISceneObject } from 'src/common/common';
+import { AppMode, hitTestCircle, ICircle, IScene, ISceneObject } from 'src/common/common';
 import { Ball, IBallOptions } from 'src/papa/ball';
 import { Scene } from 'src/papa/scene';
 
@@ -10,7 +10,7 @@ import { Scene } from 'src/papa/scene';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('stage', { static: true }) canvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('stage') canvas!: ElementRef<HTMLCanvasElement>;
   public ctx: CanvasRenderingContext2D | null = null;
   public world = 1000;  
   public title = 'Maria Gravity Project';  
@@ -27,7 +27,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public gravity: number = 0;
   public elasticity: number = 0.5;
   public friction: number = 0.008;
-
+  public mode: AppMode = AppMode.SpaceGravity;
+  public AppMode = AppMode;
   public favorite(event: any) {
     window.alert("YAAAAA!")
   } 
@@ -37,6 +38,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
    * @param zone NG zone
    */
   constructor(private zone: NgZone) {    
+  }
+
+  public toggleMode(mode: AppMode): void {
+    this.mode = mode;
+    this.initSym();
   }
 
   private canStartHere(c2: ICircle): boolean {    
@@ -78,7 +84,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         center: center,
         radius: r, 
         color: colors[Math.ceil(Math.random() * colors.length)],
-        speed: 5 + Math.random() * 5,
+        speed: 0, // 5 + Math.random() * 5,
         angle: Math.random() * 360,
         mass: 5 + Math.random() * 5,
         trace: true,
@@ -115,22 +121,32 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.scene!.friction = this.friction = f;
   }
 
+  public initSym(): void {
+    if (this.mode === AppMode.About) {
+      return;
+    }
+    _.delay(() => {
+      this.ctx = this.canvas.nativeElement.getContext("2d");
+      this.setCanvasSize();    
+
+      // Scene initialization
+      this.scene = new Scene(this.ctx!, this.world, this.borderSize);
+      this.scene.mode = this.mode;
+      this.scene.gravity = this.gravity;
+      this.scene.elasticity = this.elasticity;
+      this.scene.friction = this.friction;
+      
+      this.zone.runOutsideAngular(() =>     
+        this.animate()
+      );
+    }, 10);
+  }
+
   /**
    * The DOM is loaded and all bindings are available
    */
-  ngAfterViewInit(): void {    
-    this.ctx = this.canvas.nativeElement.getContext("2d");
-    this.setCanvasSize();    
-
-    // Scene initialization
-    this.scene = new Scene(this.ctx!, this.world, this.borderSize);
-    this.scene.gravity = this.gravity;
-    this.scene.elasticity = this.elasticity;
-    this.scene.friction = this.friction;
-    
-    this.zone.runOutsideAngular(() =>     
-      this.animate()
-    );
+  ngAfterViewInit(): void {   
+    this.initSym();   
   }
 
   /**

@@ -1,6 +1,7 @@
-import { hitTestCircle, ICircle, IPoint, IScene } from "src/common/common";
+import { AppMode, hitTestCircle, ICircle, IPoint, IScene } from "src/common/common";
 import { BaseObject } from "./base";
 import * as _ from "lodash";
+import { Vector } from "src/common/vector";
 
 export interface IBallOptions {
     center: IPoint;
@@ -42,13 +43,31 @@ export class Ball extends BaseObject implements ICircle {
     }
 
     private update(scene?: IScene): void {   
-        if (scene && scene.gravity) {
+        if (scene && scene.gravity && scene.mode === AppMode.EarthGravity) {
             this.y_velocity -= scene.gravity;
         }               
-        this.position.x += this.x_velocity;
-        this.position.y += this.y_velocity;              
 
-        console.log(`gravity ${scene?.gravity} ball ${this.x_velocity} ${this.y_velocity}`);
+        if (scene && scene.mode === AppMode.SpaceGravity) {
+            const sum_vector = scene.objects.reduce((acc, ball) => {
+                if (this.name === ball.name || !(ball instanceof Ball)) return acc;
+                
+                let vec = Vector.move(
+                    {x: this.position.x, y: this.position.y}, 
+                    {x: ball.position.x, y: ball.position.y}
+                );
+                
+                const strength = scene.gravity/10000 * this.mass * ball.mass / vec.magnitude * vec.magnitude;                
+                vec.normalize().mul(strength);
+                acc = acc.isNull ? vec : acc.add(vec);                  
+                return acc;
+            }, new Vector(0, 0));
+
+            this.x_velocity += sum_vector.x;
+            this.y_velocity += sum_vector.y;           
+        }
+
+        this.position.x += this.x_velocity;
+        this.position.y += this.y_velocity; 
     }
 
     private testWalls(scene: IScene): void {
@@ -66,12 +85,12 @@ export class Ball extends BaseObject implements ICircle {
             this.y_velocity = -1 * this.y_velocity;
             this.position.y = scene.VisibleWorldHeight - bh;
         } else if (scene.Y(this.position.y - bh) >= scene.Y(0)) {
-            if (scene && scene.gravity && scene.elasticity) {
+            if (scene && scene.gravity && scene.elasticity && scene.mode === AppMode.EarthGravity) {
                 this.y_velocity = -1 * this.y_velocity * scene.elasticity;
             } else {
                 this.y_velocity = -1 * this.y_velocity;
             }
-            if (scene && scene.gravity && scene.friction) {
+            if (scene && scene.gravity && scene.friction && scene.mode === AppMode.EarthGravity) {
                 this.x_velocity = this.x_velocity - (this.x_velocity * scene.friction);
             } 
             this.position.y = bh;
@@ -149,7 +168,17 @@ export class Ball extends BaseObject implements ICircle {
             ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
             ctx.fillStyle = this.color;
             ctx.fill();
-        }           
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(this.radius * 3);
+            ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(255, 255, 0, 0.3)";
+            ctx.stroke();
+            
+        }    
+
     }
 
     public get center(): IPoint {

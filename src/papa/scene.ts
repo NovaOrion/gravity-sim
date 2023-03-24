@@ -1,6 +1,6 @@
 import {OrderedMap} from 'immutable';
 import * as _ from 'lodash';
-import { IScene, ISceneObject } from 'src/common/common';
+import { AppMode, IScene, ISceneObject } from 'src/common/common';
 
 export class Scene implements IScene {
     
@@ -10,6 +10,7 @@ export class Scene implements IScene {
     public gravity: number = 0;
     public elasticity: number = 0;
     public friction: number = 0;
+    public mode: AppMode = AppMode.EarthGravity;
 
     public objects = OrderedMap<string, ISceneObject>();    
 

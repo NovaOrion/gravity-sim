@@ -1,4 +1,4 @@
-import { IVector } from "./common";
+import { IPoint, IVector } from "./common";
 
 export class Vector implements IVector {
 
@@ -23,6 +23,14 @@ export class Vector implements IVector {
         this.x /= n;
         this.y /= n;
         return this;
+    }
+    static move(pt1: IPoint, pt2: IPoint): IVector {
+        const x = pt2.x - pt1.x;
+        const y = pt2.y - pt1.y;
+        return new Vector(x, y);
+    }
+    public get isNull(): boolean {
+        return this.x === 0 && this.y === 0;
     }
     public get magnitude(): number {
         return Math.sqrt(this.x*this.x + this.y*this.y);

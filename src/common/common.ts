@@ -34,6 +34,7 @@ export interface IScene {
     gravity: number;
     elasticity: number;
     friction: number;
+    mode: AppMode;
 }
 export interface IPoint {
     x: number;
@@ -52,6 +53,17 @@ export interface ISize {
 export interface IVector {
     x: number;
     y: number;
+    add(v: IVector) : IVector;
+    sub(v: IVector): IVector;
+    mul(n: number): IVector;
+    div(n: number): IVector;
+    magnitude: number; 
+    normalize(): IVector; 
+    dir(direction: number): IVector;
+    dotProduct(v: IVector): number;
+    crossProduct(v: IVector): number;    
+    toString(): string;
+    isNull: boolean;
 }
 export interface ICircle {
     center: IPoint;
@@ -67,49 +79,9 @@ export function hitTestCircle(c1: ICircle, c2: ICircle): boolean {
     }
     return result;
 }
-export class Vector implements IVector {
 
-    constructor(public x: number, public y: number) {        
-    }
-    public add(v: IVector) : IVector {
-        this.x += v.x;
-        this.y += v.y;
-        return this;
-    }
-    public sub(v: IVector): IVector {
-        this.x -= v.x;
-        this.y -= v.y;
-        return this;
-    }
-    public mul(n: number): IVector {
-        this.x *= n;
-        this.y *= n;
-        return this;
-    }
-    public div(n: number): IVector {
-        this.x /= n;
-        this.y /= n;
-        return this;
-    }
-    public get magnitude(): number {
-        return Math.sqrt(this.x*this.x + this.y*this.y);
-    }
-    public normalize(): IVector {
-        const magnitude = this.magnitude;
-        this.x /= magnitude;
-        this.y /= magnitude;
-        return this;
-    }
-    public dir(direction: number): IVector {
-        const magnitude = this.magnitude;
-        this.x = Math.cos(direction) * magnitude;
-        this.y = Math.sin(direction) * magnitude;
-        return this;
-    }
-    static unitVector(direction: number): IVector {
-        return new Vector(Math.cos(direction), Math.sin(direction));
-    }
-    static fromPolar(length: number, angle: number): IVector {
-        return new Vector(length * Math.cos(angle), length * Math.sin(angle));
-    }
+export enum AppMode {
+    About, 
+    EarthGravity, 
+    SpaceGravity
 }

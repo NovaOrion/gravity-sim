@@ -1,15 +1,18 @@
 <mat-toolbar color="primary">
     <span>Maria's Gravity Sim</span>
     <span class="spacer"></span>
-    <button mat-icon-button matTooltip="EarthView">
+    <button mat-icon-button matTooltip="EarthView" (click)="toggleMode(AppMode.EarthGravity)">
         <i class="fa-solid fa-earth-americas"></i>
     </button>
-    <button mat-icon-button matTooltip="SpaceView">
+    <button mat-icon-button matTooltip="SpaceView" (click)="toggleMode(AppMode.SpaceGravity)">
         <i class="fa-solid fa-meteor"></i> 
     </button>
+    <button mat-icon-button matTooltip="About" (click)="toggleMode(AppMode.About)">
+        <i class="fa-regular fa-circle-question"></i> 
+    </button>
 </mat-toolbar>
-<mat-drawer-container class="content" autosize>
-    <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen">
+<mat-drawer-container class="content" autosize *ngIf="mode!==AppMode.About" [ngSwitch]="mode">
+    <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen" *ngSwitchCase="AppMode.EarthGravity">
         <p>Parameters</p>   
         <div class="param-field">            
             <label for="fps">FPS <span class="label-dim">[{{fps}}]</span></label>
@@ -54,11 +57,46 @@
             </mat-slider>
         </div> 
     </mat-drawer>
+
+    <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen" *ngSwitchCase="AppMode.SpaceGravity">
+        <p>Parameters</p>   
+        <div class="param-field">            
+            <label for="fps">FPS <span class="label-dim">[{{fps}}]</span></label>
+            <mat-slider id="fps" showTickMarks discrete min="30" max="90" step="30" class="val">
+                <input matSliderThumb [(ngModel)]="fps" >
+            </mat-slider>
+        </div>        
+        <div class="param-field">            
+            <label for="mass">Mass <span class="label-dim">[{{mass}}kg]</span></label>
+            <mat-slider id="mass" showTickMarks discrete min="50" max="100" step="10" class="val">
+                <input matSliderThumb [(ngModel)]="mass" >
+            </mat-slider>
+        </div>        
+        <div class="param-field">            
+            <label for="trail">Trail Length <span class="label-dim">[{{trail}}]</span></label>
+            <mat-slider id="trail" showTickMarks discrete min="10" max="100" step="10" class="val">
+                <input matSliderThumb [ngModel]="trail" (ngModelChange)="onTrailLengthChanged($event)">
+            </mat-slider>
+        </div>   
+        <div class="param-field">            
+            <label for="num_of_balls"># Balls <span class="label-dim">[{{num_of_balls}}]</span></label>
+            <mat-slider id="num_of_balls" showTickMarks discrete min="1" max="10" step="1" class="val">
+                <input matSliderThumb [(ngModel)]="num_of_balls">
+            </mat-slider>
+        </div>
+        <div class="param-field">            
+            <label for="gravity">Gravity <span class="label-dim">[{{gravity}}]</span></label>
+            <mat-slider id="gravity" showTickMarks discrete min="0" max="1" step="0.1" class="val">
+                <input matSliderThumb [ngModel]="gravity" (ngModelChange)="onGravityChanged($event)">
+            </mat-slider>
+        </div>      
+    </mat-drawer>
+
     <div class="sidenav-content" (resized)="resize()">
         <canvas #stage id="stage"></canvas>        
     </div>
 </mat-drawer-container>
-<div class="footer">
+<div class="footer" *ngIf="mode!==AppMode.About;else elseBlock;">
     <button mat-raised-button color="primary" class="footer-button" [disabled]="playing" (click)="start()">
        Start
     </button>
@@ -66,4 +104,7 @@
         Stop
      </button>
     <mat-slide-toggle [(ngModel)]="isSideNavOpen" [title]="isSideNavOpen?'Toggle to close Side Panel':'Toggle to open Side Panel'"></mat-slide-toggle>    
-</div> 
+</div>
+<ng-template #elseBlock>
+    About
+</ng-template>
