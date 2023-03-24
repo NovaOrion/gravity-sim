@@ -57,7 +57,7 @@ export class Ball extends BaseObject implements ICircle {
                 );
                 
                 const strength = scene.gravity/10000 * this.mass * ball.mass / vec.magnitude * vec.magnitude;                
-                vec.normalize().mul(strength);
+                vec.normalize().mul(strength / this.mass); // this is F / m = a acceleration
                 acc = acc.isNull ? vec : acc.add(vec);                  
                 return acc;
             }, new Vector(0, 0));
@@ -83,7 +83,7 @@ export class Ball extends BaseObject implements ICircle {
         } else if (this.position.y > scene.VisibleWorldHeight) {
             this.y_velocity = -1 * this.y_velocity;
             this.position.y = scene.VisibleWorldHeight - bh - 1;
-        } else if (scene.Y(this.position.y - bh) > scene.Y(0)) {
+        } else if (scene.Y(this.position.y - bh) >= scene.Y(0)) {
             if (scene && scene.gravity && scene.elasticity && scene.mode === AppMode.EarthGravity) {
                 this.y_velocity = -1 * this.y_velocity * scene.elasticity;
             } else {
@@ -92,7 +92,7 @@ export class Ball extends BaseObject implements ICircle {
             if (scene && scene.gravity && scene.friction && scene.mode === AppMode.EarthGravity) {
                 this.x_velocity = this.x_velocity - (this.x_velocity * scene.friction);
             } 
-            this.position.y = bh + 1;
+            this.position.y = bh + ((scene.mode === AppMode.SpaceGravity) ? 1 : 0);
         }
     }
 
@@ -135,6 +135,7 @@ export class Ball extends BaseObject implements ICircle {
     }
 
     override collide(scene: IScene): void {
+
         const hit_object = scene.objects.find(x => {
             if (x instanceof Ball && x.name !== this.name) {
                 const c1 = x as ICircle;
@@ -144,14 +145,21 @@ export class Ball extends BaseObject implements ICircle {
         });
         if (hit_object) {
             const b = hit_object as Ball;
-            this.process_collide(scene, b);
+            if (scene.mode === AppMode.SpaceGravity && b.name === 'sun') {
+                scene.remove(this.name);
+            } else {
+                this.process_collide(scene, b);
+            }
         }
+        
     }
 
     override delta(scene: IScene): void {
         super.delta(scene);        
         this.update(scene);
-        this.testWalls(scene); 
+        if (scene.mode === AppMode.EarthGravity) {
+            this.testWalls(scene); 
+        }
         scene.updateByKey(this.name, this);
     }
 
@@ -162,13 +170,13 @@ export class Ball extends BaseObject implements ICircle {
             const x = scene.X(this.position.x);
             const y = scene.Y(this.position.y); 
 
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(this.radius * 3);
-            ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
-            ctx.stroke();
+            // ctx.beginPath();
+            // ctx.moveTo(x, y);
+            // const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(Math.max(this.radius * 3, 25));
+            // ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
+            // ctx.lineWidth = 2;
+            // ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+            // ctx.stroke();
 
             const radius = scene.scale * this.radius;
             ctx.beginPath();

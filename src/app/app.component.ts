@@ -14,8 +14,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public ctx: CanvasRenderingContext2D | null = null;
   public world = 1000;  
   public title = 'Maria Gravity Project';  
-  public mass = 60;
-  public trail = 60;
+  public mass = 1;
+  public trail = 100;
   public fps = 60;
   public isSideNavOpen=true;
   public timeoutId: any;
@@ -23,7 +23,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public playing: boolean = false;
   public scene: IScene | null = null;
   public borderSize: number = 2;
-  public num_of_balls: number = 1;
+  public num_of_balls: number = 100;
   public gravity: number = 0;
   public elasticity: number = 0.5;
   public friction: number = 0.008;
@@ -42,6 +42,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   public toggleMode(mode: AppMode): void {
     this.mode = mode;
+    this.num_of_balls = AppMode.EarthGravity ? 10 : 100;
+    this.trail = AppMode.EarthGravity ? 100 : 100;
+    this.scene?.clear();
+    this.playing = false;
     this.initSym();
   }
 
@@ -65,7 +69,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     const colors = ["green", "red", "yellow", "blue", "white", "gray", "pink", "orange"];
 
     for (let i = 0; i < this.num_of_balls; ++i) {
-      let r = 5 + Math.random() * 10;
+      let r = 3 + Math.random();
       let center = { x: r + Math.random() * (this.world - 2*r) , y: r + Math.random() * (this.scene.VisibleWorldHeight - 2 * r) };
       let c: ICircle = {
         center, 
@@ -84,11 +88,24 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         center: center,
         radius: r, 
         color: colors[Math.ceil(Math.random() * colors.length)],
-        speed: 0, // 5 + Math.random() * 5,
+        speed: Math.random() * 10,
         angle: Math.random() * 360,
-        mass: 5 + Math.random() * 5,
+        mass: r,
         trace: true,
         trace_limit: this.trail
+      });
+      this.scene?.add(ball);
+    }
+
+    if (this.mode === AppMode.SpaceGravity) {
+      const ball = new Ball("sun", {
+        center: {x: this.world / 2, y: this.scene.VisibleWorldHeight / 2},
+        radius: 25, 
+        color: "orange",
+        speed: 0,
+        angle: 0,
+        mass: this.mass * 1000,
+        trace: false,      
       });
       this.scene?.add(ball);
     }
@@ -119,6 +136,15 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
   public onFrictionChanged(f: number): void {
     this.scene!.friction = this.friction = f;
+  }
+  public onSunMassChanged(m: number): void {
+    const sun_colors = [{
+
+    }];
+    this.mass = m;
+    const sun = this.scene?.objects.get("sun") as Ball;
+    sun.mass = this.mass = m;
+    this.scene?.updateByKey("sun", sun);
   }
 
   public initSym(): void {
