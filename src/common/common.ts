@@ -35,6 +35,7 @@ export interface IScene {
     elasticity: number;
     friction: number;
     mode: AppMode;
+    inPause: boolean;
 }
 export interface IPoint {
     x: number;
@@ -84,4 +85,10 @@ export enum AppMode {
     About, 
     EarthGravity, 
     SpaceGravity
+}
+
+export enum SymState {
+    Playing,
+    Paused,
+    Stopped
 }

@@ -11,6 +11,7 @@ export class Scene implements IScene {
     public elasticity: number = 0;
     public friction: number = 0;
     public mode: AppMode = AppMode.EarthGravity;
+    public inPause: boolean = false;
 
     public objects = OrderedMap<string, ISceneObject>();    
 
@@ -106,14 +107,16 @@ export class Scene implements IScene {
 
     // remove all objects from scene
     public clear(): IScene {
-        this.objects = this.objects.clear();
+        this.objects = this.objects.clear();                
         return this;        
     }
 
     // calculate delta and draw for each objects in scene in ordered manner
-    public draw(): void {        
-        this.objects.forEach(x => x.delta(this));
-        this.objects.forEach(x => x.collide(this));
+    public draw(): void {     
+        if (!this.inPause) {
+            this.objects.forEach(x => x.delta(this));
+            this.objects.forEach(x => x.collide(this));
+        }
         const filtered = this.objects.filter(x => x.enabled);
         filtered.forEach(x => x.draw_trace(this));
         filtered.forEach(x => x.draw(this));

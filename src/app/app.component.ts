@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as _ from 'lodash';
-import { AppMode, hitTestCircle, ICircle, IScene, ISceneObject } from 'src/common/common';
+import { AppMode, hitTestCircle, ICircle, IScene, ISceneObject, SymState } from 'src/common/common';
 import { Ball, IBallOptions } from 'src/papa/ball';
 import { Scene } from 'src/papa/scene';
 
@@ -20,18 +20,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public isSideNavOpen=true;
   public timeoutId: any;
   private requestId: number = 0;  
-  public playing: boolean = false;
+  public symState: SymState = SymState.Stopped;
   public scene: IScene | null = null;
   public borderSize: number = 2;
   public num_of_balls: number = 100;
-  public gravity: number = 0;
-  public elasticity: number = 0.5;
-  public friction: number = 0.008;
+  public gravity: number = 0.1;
+  public elasticity: number = 0.9;
+  public friction: number = 0.06;
   public mode: AppMode = AppMode.SpaceGravity;
   public AppMode = AppMode;
-  public favorite(event: any) {
-    window.alert("YAAAAA!")
-  } 
+  public SymState = SymState;
 
   /**
    * Constructor for main app component
@@ -44,8 +42,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.mode = mode;
     this.num_of_balls = AppMode.EarthGravity ? 10 : 100;
     this.trail = AppMode.EarthGravity ? 100 : 100;
-    this.scene?.clear();
-    this.playing = false;
+    this.stop();
     this.initSym();
   }
 
@@ -66,10 +63,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
    */
   public start(): void {
     if (!this.scene) return;
-    const colors = ["green", "red", "yellow", "blue", "white", "gray", "pink", "orange"];
+    const colors = ["greed", "red", "yellow", "#AED6F1", "white", "#F5CBA7", "pink", "orange", "cyan"];
 
     for (let i = 0; i < this.num_of_balls; ++i) {
-      let r = 3 + Math.random();
+      let r = 3 + Math.random() * (this.mode === AppMode.EarthGravity ? 10 : 1);
       let center = { x: r + Math.random() * (this.world - 2*r) , y: r + Math.random() * (this.scene.VisibleWorldHeight - 2 * r) };
       let c: ICircle = {
         center, 
@@ -110,15 +107,32 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.scene?.add(ball);
     }
       
-    this.playing = true;
+    this.symState = SymState.Playing;
+  }
+
+  /**
+   * Pause Simulation
+   */
+  public pause(): void {    
+    this.symState = SymState.Paused;
+    this.scene!.inPause = true;
+  }
+
+  /**
+   * Resume Simulation
+   */
+  public resume(): void {
+    this.symState = SymState.Playing;
+    this.scene!.inPause = false;
   }
 
   /**
    * Stop Simulation
    */
   public stop(): void {
-    this.scene?.clear();
-    this.playing = false;
+    this.scene?.clear(); 
+    this.scene!.inPause = false;   
+    this.symState = SymState.Stopped;
   }
 
   public onTrailLengthChanged(trail_length: number): void {
@@ -196,7 +210,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.ctx.fill();
     this.ctx.strokeStyle = "white";
     this.ctx.stroke();
-
     this.scene?.draw();
   }
 
