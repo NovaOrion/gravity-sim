@@ -74,17 +74,16 @@ export class Ball extends BaseObject implements ICircle {
         const bw = this.bounds.width / 2;
         const bh = this.bounds.height / 2;
 
-        if (scene.X(this.position.x + bw) >= scene.width) {
+        if (scene.X(this.position.x + bw) > scene.width) {
             this.x_velocity = -1 * this.x_velocity;
-            this.position.x = scene.width / scene.scale - bw;
-        } else if (scene.X(this.position.x - bw) <= scene.X(0)) {
+            this.position.x = scene.width / scene.scale - bw - 1;            
+        } else if (scene.X(this.position.x - bw) < scene.X(0)) {
             this.x_velocity = -1 * this.x_velocity;
-            this.position.x = bw;
-        }
-        if (this.position.y >= scene.VisibleWorldHeight) {
+            this.position.x = bw + 1;
+        } else if (this.position.y > scene.VisibleWorldHeight) {
             this.y_velocity = -1 * this.y_velocity;
-            this.position.y = scene.VisibleWorldHeight - bh;
-        } else if (scene.Y(this.position.y - bh) >= scene.Y(0)) {
+            this.position.y = scene.VisibleWorldHeight - bh - 1;
+        } else if (scene.Y(this.position.y - bh) > scene.Y(0)) {
             if (scene && scene.gravity && scene.elasticity && scene.mode === AppMode.EarthGravity) {
                 this.y_velocity = -1 * this.y_velocity * scene.elasticity;
             } else {
@@ -93,7 +92,7 @@ export class Ball extends BaseObject implements ICircle {
             if (scene && scene.gravity && scene.friction && scene.mode === AppMode.EarthGravity) {
                 this.x_velocity = this.x_velocity - (this.x_velocity * scene.friction);
             } 
-            this.position.y = bh;
+            this.position.y = bh + 1;
         }
     }
 
@@ -163,19 +162,21 @@ export class Ball extends BaseObject implements ICircle {
             const x = scene.X(this.position.x);
             const y = scene.Y(this.position.y); 
 
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(this.radius * 3);
+            ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+            ctx.stroke();
+
             const radius = scene.scale * this.radius;
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
             ctx.fillStyle = this.color;
             ctx.fill();
 
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(this.radius * 3);
-            ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "rgba(255, 255, 0, 0.3)";
-            ctx.stroke();
+            
             
         }    
 
