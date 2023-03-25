@@ -188,10 +188,15 @@ export class Ball extends BaseObject implements ICircle {
             ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
             if (this.name === 'sun') {
                 const gradient = ctx.createRadialGradient(x, y, 0.1*radius, x, y, radius);
-                gradient.addColorStop(0, "red");
-                gradient.addColorStop(0.8, "orange");
-                gradient.addColorStop(1, "yellow");
-                ctx.shadowColor = "yellow";
+                const sun_colors = [
+                    ["red", "orange", "yellow"],                    
+                    ["lightblue", "cyan", "white"]
+                ];
+                const i = this.mass > 2500 ? 1 : 0
+                gradient.addColorStop(0, sun_colors[i][0]);
+                gradient.addColorStop(0.8, sun_colors[i][1]);
+                gradient.addColorStop(1, sun_colors[i][2]);
+                ctx.shadowColor = this.mass > 2500 ? "white" : "yellow";
                 ctx.shadowBlur = 32;
                 ctx.fillStyle = gradient;                 
             } else {
