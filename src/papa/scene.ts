@@ -11,9 +11,10 @@ export class Scene implements IScene {
     public elasticity: number = 0;
     public friction: number = 0;
     public mode: AppMode = AppMode.EarthGravity;
-    public inPause: boolean = false;
-
+    public inPause: boolean = false;    
+    public postCalc: (() => void) | null = null;
     public objects = OrderedMap<string, ISceneObject>();    
+    public showVelocityVector: boolean = false;
 
     constructor(public ctx: CanvasRenderingContext2D, public world: number, padding: number) { 
         this.padding = padding; 
@@ -29,19 +30,25 @@ export class Scene implements IScene {
         return this.sceneWidth / this.world;
     }
 
-    public X(x: number) {      
+    public X(x: number): number {      
         return Math.round(this.scale * x) + this.padding;
     }
 
-    public Y(y: number) {      
+    public Y(y: number): number {      
         return this.ctx?.canvas.height - this.padding - Math.round(this.scale * y);
+    }
+
+    public worldX(x: number): number {      
+        return (x - this.padding)/this.scale;
+    }
+
+    public worldY(y: number): number {      
+        return (this.ctx?.canvas.height - this.padding - y)/this.scale;        
     }
 
     public get VisibleWorldHeight(): number { 
         return this.sceneHeight / this.scale;
     }
-
-    
 
     // add to scene collection
     public add(obj: ISceneObject): IScene {
@@ -113,10 +120,14 @@ export class Scene implements IScene {
 
     // calculate delta and draw for each objects in scene in ordered manner
     public draw(): void {     
-        if (!this.inPause) {
-            this.objects.forEach(x => x.delta(this));
+        if (!this.inPause) {            
+            this.objects.forEach(x => x.delta(this));            
             this.objects.forEach(x => x.collide(this));
+            if (this.postCalc) {
+                this.postCalc();
+            }
         }
+        
         const filtered = this.objects.filter(x => x.enabled);
         filtered.forEach(x => x.draw_trace(this));
         filtered.forEach(x => x.draw(this));

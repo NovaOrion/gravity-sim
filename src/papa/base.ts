@@ -1,4 +1,4 @@
-import { IPoint, IScene, ISceneObject, ISize } from "src/common/common";
+import { IPoint, IScene, ISceneObject, ISize, IVector } from "src/common/common";
 
 export class BaseObject implements ISceneObject {
     
@@ -7,8 +7,8 @@ export class BaseObject implements ISceneObject {
     public trace_limit: number = 0;
     public position: IPoint;
 
-    protected bounds: ISize = { width: 0, height: 0 };
-    protected trace_points: IPoint[] = [];
+    public bounds: ISize = { width: 0, height: 0 };
+    public trace_points: IPoint[] = [];
 
 
     constructor(public name: string) {
@@ -17,6 +17,17 @@ export class BaseObject implements ISceneObject {
 
     collide(scene: IScene): void {
         
+    }
+
+    pan(p: IVector): void {
+        this.position.x += p.x;
+        this.position.y += p.y;
+        if (this.trace) {
+            this.trace_points.forEach(tp => {
+                tp.x += p.x;
+                tp.y += p.y;
+            });
+        }
     }
 
     delta(scene: IScene): void {

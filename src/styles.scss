@@ -30,6 +30,9 @@ body {
     flex-direction: rows;
     margin-right: 15px;
     align-items: center;
+    &.checkbox {
+      min-height: 42px;
+    }
     label {
       flex: 1;
       display: inline-block;   

@@ -10,6 +10,7 @@ export interface ISceneObject {
     collide(scene: IScene): void;
     draw(scene: IScene): void;
     draw_trace(scene: IScene): void;
+    pan(p: IVector): void;
 }
 export interface IScene {
     ctx: CanvasRenderingContext2D;
@@ -23,10 +24,13 @@ export interface IScene {
     update(obj: ISceneObject | ISceneObject[]): IScene;
     updateWithCondition(condition: (obj: ISceneObject) => boolean, map: (obj: ISceneObject) => ISceneObject): void;
     clear(): IScene;
+    postCalc: (() => void) | null;
     draw(): void;
     resize(): void;
     X(x: number): number;
     Y(y: number): number;
+    worldX(x: number): number;
+    worldY(y: number): number;
     scale: number;
     VisibleWorldHeight: number;
     width: number;
@@ -36,6 +40,7 @@ export interface IScene {
     friction: number;
     mode: AppMode;
     inPause: boolean;
+    showVelocityVector: boolean;
 }
 export interface IPoint {
     x: number;
@@ -65,6 +70,7 @@ export interface IVector {
     crossProduct(v: IVector): number;    
     toString(): string;
     isNull: boolean;
+    angle(): number;
 }
 export interface ICircle {
     center: IPoint;
@@ -91,4 +97,43 @@ export enum SymState {
     Playing,
     Paused,
     Stopped
+}
+
+export function uuid() {  
+    let uuidValue = "", k, randomValue;  
+    for (let k = 0; k < 32; k++) {  
+        randomValue = Math.random() * 16 | 0;  
+
+        if (k == 8 || k == 12 || k == 16 || k == 20) {  
+            uuidValue += "-";
+        }  
+        uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);  
+    }  
+    return uuidValue;  
+}  
+
+export function drawArrowhead(ctx: CanvasRenderingContext2D, from: IPoint, to: IPoint, radius: number, color: string) {
+	var x_center = to.x;
+	var y_center = to.y;
+
+	var angle;
+	var x;
+	var y;
+
+	ctx.beginPath();
+	angle = Math.atan2(to.y - from.y, to.x - from.x)
+	x = radius * Math.cos(angle) + x_center;
+	y = radius * Math.sin(angle) + y_center;
+	ctx.moveTo(x, y);
+	angle += (1.0/3.0) * (2 * Math.PI)
+	x = radius * Math.cos(angle) + x_center;
+	y = radius * Math.sin(angle) + y_center;
+	ctx.lineTo(x, y);
+	angle += (1.0/3.0) * (2 * Math.PI)
+	x = radius * Math.cos(angle) + x_center;
+	y = radius * Math.sin(angle) + y_center;
+	ctx.lineTo(x, y);
+	ctx.closePath();
+    ctx.fillStyle = color;
+	ctx.fill();
 }

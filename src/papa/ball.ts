@@ -1,4 +1,4 @@
-import { AppMode, hitTestCircle, ICircle, IPoint, IScene } from "src/common/common";
+import { AppMode, drawArrowhead, hitTestCircle, ICircle, IPoint, IScene } from "src/common/common";
 import { BaseObject } from "./base";
 import * as _ from "lodash";
 import { Vector } from "src/common/vector";
@@ -57,7 +57,7 @@ export class Ball extends BaseObject implements ICircle {
                 );
                 
                 const strength = scene.gravity/10000 * this.mass * ball.mass / vec.magnitude * vec.magnitude;                
-                vec.normalize().mul(strength / this.mass); // this is F / m = a acceleration
+                vec = vec.normalize().mul(strength / this.mass); // this is F / m = a acceleration
                 acc = acc.isNull ? vec : acc.add(vec);                  
                 return acc;
             }, new Vector(0, 0));
@@ -136,6 +136,7 @@ export class Ball extends BaseObject implements ICircle {
 
     override collide(scene: IScene): void {
 
+        if (this.name === 'sun') return;
         const hit_object = scene.objects.find(x => {
             if (x instanceof Ball && x.name !== this.name) {
                 const c1 = x as ICircle;
@@ -170,13 +171,17 @@ export class Ball extends BaseObject implements ICircle {
             const x = scene.X(this.position.x);
             const y = scene.Y(this.position.y); 
 
-            // ctx.beginPath();
-            // ctx.moveTo(x, y);
-            // const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(Math.max(this.radius * 3, 25));
-            // ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
-            // ctx.lineWidth = 2;
-            // ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
-            // ctx.stroke();
+            if (this.name !== 'sun' && scene.showVelocityVector) {
+                const magnitude = Math.min(Math.max(this.radius * this.speed * 2, 10), 100);
+                const vec = new Vector(this.x_velocity, this.y_velocity).normalize().mul(magnitude);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+                ctx.stroke();
+                drawArrowhead(ctx, {x, y}, {x: scene.X(this.position.x + vec.x), y: scene.Y(this.position.y + vec.y)}, 6, "rgba(255, 0, 0, 0.5)");
+            }
 
             const radius = scene.scale * this.radius;
             ctx.beginPath();

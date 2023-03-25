@@ -74,7 +74,7 @@
         </div>   
         <div class="param-field">            
             <label for="num_of_balls"># Balls <span class="label-dim">[{{num_of_balls}}]</span></label>
-            <mat-slider id="num_of_balls" showTickMarks discrete min="1" max="100" step="1" class="val">
+            <mat-slider id="num_of_balls" showTickMarks discrete min="0" max="25" step="1" class="val">
                 <input matSliderThumb [(ngModel)]="num_of_balls">
             </mat-slider>
         </div>
@@ -83,7 +83,15 @@
             <mat-slider id="gravity" showTickMarks discrete min="0" max="1" step="0.1" class="val">
                 <input matSliderThumb [ngModel]="gravity" (ngModelChange)="onGravityChanged($event)">
             </mat-slider>
-        </div>      
+        </div>    
+        <div class="param-field checkbox">            
+            <label for="lockSun" matTooltip="Lock Sun in the center">Lock Sun</label>
+            <mat-slide-toggle [(ngModel)]="lockSun"></mat-slide-toggle>
+        </div>    
+        <div class="param-field checkbox">            
+            <label for="showVelocityVector" matTooltip="Show velocity vector">Show Velocity Vectors</label>
+            <mat-slide-toggle [ngModel]="showVelocityVector" (ngModelChange)="onShowVelocityVectorChanged($event)"></mat-slide-toggle>
+        </div>
     </mat-drawer>
 
     <div class="sidenav-content" (resized)="resize()">

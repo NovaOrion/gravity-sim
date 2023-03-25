@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as _ from 'lodash';
-import { AppMode, hitTestCircle, ICircle, IScene, ISceneObject, SymState } from 'src/common/common';
+import { AppMode, hitTestCircle, ICircle, IScene, ISceneObject, IVector, SymState, uuid } from 'src/common/common';
+import { Vector } from 'src/common/vector';
 import { Ball, IBallOptions } from 'src/papa/ball';
 import { Scene } from 'src/papa/scene';
 
@@ -14,7 +15,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public ctx: CanvasRenderingContext2D | null = null;
   public world = 1000;  
   public title = 'Maria Gravity Project';  
-  public mass = 1;
+  public mass = 2;
   public trail = 100;
   public fps = 60;
   public isSideNavOpen=true;
@@ -23,13 +24,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public symState: SymState = SymState.Stopped;
   public scene: IScene | null = null;
   public borderSize: number = 2;
-  public num_of_balls: number = 100;
-  public gravity: number = 0.1;
+  public num_of_balls: number = 0;
+  public gravity: number = 0.4;
   public elasticity: number = 0.9;
   public friction: number = 0.06;
   public mode: AppMode = AppMode.SpaceGravity;
   public AppMode = AppMode;
   public SymState = SymState;
+  public lockSun: boolean = true;
+  public start_drawing: IVector | null = null;
+  public showVelocityVector: boolean = false;
 
   /**
    * Constructor for main app component
@@ -40,7 +44,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   public toggleMode(mode: AppMode): void {
     this.mode = mode;
-    this.num_of_balls = AppMode.EarthGravity ? 10 : 100;
+    this.num_of_balls = AppMode.EarthGravity ? 10 : 0;
     this.trail = AppMode.EarthGravity ? 100 : 100;
     this.stop();
     this.initSym();
@@ -58,16 +62,24 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     return !result;
   }
 
-  /**
-   * Start Simulation
-   */
-  public start(): void {
+
+  public addRandomBall(scene: IScene, options?: any): void {
     if (!this.scene) return;
     const colors = ["greed", "red", "yellow", "#AED6F1", "white", "#F5CBA7", "pink", "orange", "cyan"];
-
-    for (let i = 0; i < this.num_of_balls; ++i) {
-      let r = 3 + Math.random() * (this.mode === AppMode.EarthGravity ? 10 : 1);
-      let center = { x: r + Math.random() * (this.world - 2*r) , y: r + Math.random() * (this.scene.VisibleWorldHeight - 2 * r) };
+    
+    let r = 3 + Math.random() * (this.mode === AppMode.EarthGravity ? 10 : 1);
+    let center;
+    if (options.center) {
+      center = options.center;
+      let c: ICircle = {
+        center, 
+        radius: r
+      };
+      if (!this.canStartHere(c)) {
+        return;
+      }
+    } else {
+      center = { x: r + Math.random() * (this.world - 2 * r) , y: r + Math.random() * (this.scene.VisibleWorldHeight - 2 * r) };
       let c: ICircle = {
         center, 
         radius: r
@@ -78,20 +90,32 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         c = {
           center, 
           radius: r
-        };
-      }
+        };        
+      }      
+    }
 
-      const ball = new Ball(`ball${i}`, {
-        center: center,
-        radius: r, 
-        color: colors[Math.ceil(Math.random() * colors.length)],
-        speed: Math.random() * 10,
-        angle: Math.random() * 360,
-        mass: r,
-        trace: true,
-        trace_limit: this.trail
-      });
-      this.scene?.add(ball);
+    const name = _.get(options, "name", `ball-${uuid()}`);
+    const ball = new Ball(name, {
+      center,
+      radius: r, 
+      color: _.get(options, "color", colors[Math.ceil(Math.random() * colors.length)]),
+      speed: _.get(options, "speed", Math.random() * 5),
+      angle: _.get(options, "angle", Math.random() * 360),
+      mass: _.get(options, "mass", r),
+      trace: true,
+      trace_limit: this.trail
+    });
+    this.scene?.add(ball);
+  }
+
+  /**
+   * Start Simulation
+   */
+  public start(): void {
+    if (!this.scene) return;
+    
+    for (let i = 0; i < this.num_of_balls; ++i) {
+      this.addRandomBall(this.scene, { name: `ball-${i}`});
     }
 
     if (this.mode === AppMode.SpaceGravity) {
@@ -133,6 +157,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.scene?.clear(); 
     this.scene!.inPause = false;   
     this.symState = SymState.Stopped;
+
   }
 
   public onTrailLengthChanged(trail_length: number): void {
@@ -152,13 +177,13 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.scene!.friction = this.friction = f;
   }
   public onSunMassChanged(m: number): void {
-    const sun_colors = [{
-
-    }];
     this.mass = m;
     const sun = this.scene?.objects.get("sun") as Ball;
-    sun.mass = this.mass = m;
+    sun.mass = m * 1000;
     this.scene?.updateByKey("sun", sun);
+  }
+  public onShowVelocityVectorChanged(show: boolean) {
+    this.scene!.showVelocityVector = show;
   }
 
   public initSym(): void {
@@ -175,7 +200,48 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.scene.gravity = this.gravity;
       this.scene.elasticity = this.elasticity;
       this.scene.friction = this.friction;
-      
+
+      this.scene.postCalc = () => {
+        if (this.mode === AppMode.SpaceGravity && this.lockSun) {
+          const sun = this.scene?.objects.get('sun');
+          if (sun && this.scene) {
+            const sunVector = new Vector(sun.position.x, sun.position.y);
+            const centerVector = new Vector(this.world / 2, this.scene.VisibleWorldHeight / 2);
+            const pan = centerVector.sub(sunVector);
+            if (pan.magnitude > 0.001) {              
+              this.scene.updateWithCondition(x => true, x => {                
+                x.pan(pan);
+                return x;
+              });
+            }
+          }
+        }
+      }
+
+      this.canvas.nativeElement.addEventListener("mousedown", e => {
+        if (this.mode !== AppMode.SpaceGravity || this.symState !== SymState.Playing) return;
+        this.start_drawing = new Vector(e.clientX, e.clientY);
+      });
+      this.canvas.nativeElement.addEventListener("mouseup", e => {
+        if (this.mode !== AppMode.SpaceGravity || this.symState !== SymState.Playing || this.start_drawing === null) return;
+        const end_drawing = new Vector(e.clientX, e.clientY);
+        const angle = end_drawing.sub(this.start_drawing!).angle();
+        const rect = this.canvas.nativeElement.getBoundingClientRect();
+        const pos = {
+          x: this.start_drawing!.x - rect.left,
+          y: this.start_drawing!.y - rect.top
+        };
+        this.addRandomBall(this.scene!, {
+          center: { 
+            x: this.scene!.worldX(pos.x),
+            y: this.scene!.worldY(pos.y)
+          },
+          angle: -1 * angle * 180 / Math.PI, // into degrees,            
+        });
+
+        this.start_drawing = null;
+      });
+
       this.zone.runOutsideAngular(() =>     
         this.animate()
       );
