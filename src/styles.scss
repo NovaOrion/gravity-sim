@@ -37,8 +37,10 @@ body {
       flex: 1;
       display: inline-block;   
       .label-dim {
+        min-width: 35px;
         color: #999;
-      }  
+        font-size: 0.75rem;
+      }        
     }
     .val {
       flex: 1;

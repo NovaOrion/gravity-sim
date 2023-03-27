@@ -1,4 +1,4 @@
-import { AppMode, drawArrowhead, hitTestCircle, ICircle, IPoint, IScene } from "src/common/common";
+import { AppMode, drawArrowhead, hitTestCircle, ICircle, IPoint, IScene, IVector } from "src/common/common";
 import { BaseObject } from "./base";
 import * as _ from "lodash";
 import { Vector } from "src/common/vector";
@@ -20,10 +20,12 @@ export class Ball extends BaseObject implements ICircle {
     public speed: number;
     public angle: number;
     public mass: number;
+    
 
     private radians: number = 0; 
     private x_velocity: number = 0;
     private y_velocity: number = 0;
+    private acceleration_vector: IVector | null = null;
 
     constructor(name: string, public options: IBallOptions) {        
         super(name);
@@ -48,7 +50,7 @@ export class Ball extends BaseObject implements ICircle {
         }               
 
         if (scene && scene.mode === AppMode.SpaceGravity) {
-            const sum_vector = scene.objects.reduce((acc, ball) => {
+            this.acceleration_vector = scene.objects.reduce((acc, ball) => {
                 if (this.name === ball.name || !(ball instanceof Ball)) return acc;
                 
                 let vec = Vector.move(
@@ -62,8 +64,8 @@ export class Ball extends BaseObject implements ICircle {
                 return acc;
             }, new Vector(0, 0));
 
-            this.x_velocity += sum_vector.x;
-            this.y_velocity += sum_vector.y;           
+            this.x_velocity += this.acceleration_vector.x;
+            this.y_velocity += this.acceleration_vector.y;           
         }
 
         this.position.x += this.x_velocity;
@@ -183,6 +185,18 @@ export class Ball extends BaseObject implements ICircle {
                 drawArrowhead(ctx, {x, y}, {x: scene.X(this.position.x + vec.x), y: scene.Y(this.position.y + vec.y)}, 6, "rgba(255, 0, 0, 0.5)");
             }
 
+            if (this.name !== 'sun' && scene.showAccelerationVector && this.acceleration_vector) {
+                const magnitude = Math.min(Math.max(this.acceleration_vector.magnitude * 200, 10), 100);
+                const vec = this.acceleration_vector.normalize().mul(magnitude);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(scene.X(this.position.x + vec.x), scene.Y(this.position.y + vec.y));
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(0, 255, 0, 0.5)";
+                ctx.stroke();
+                drawArrowhead(ctx, {x, y}, {x: scene.X(this.position.x + vec.x), y: scene.Y(this.position.y + vec.y)}, 6, "rgba(0, 255, 0, 0.5)");
+            }
+
             const radius = scene.scale * this.radius;
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
@@ -192,12 +206,12 @@ export class Ball extends BaseObject implements ICircle {
                     ["red", "orange", "yellow"],                    
                     ["lightblue", "cyan", "white"]
                 ];
-                const i = this.mass > 2500 ? 1 : 0
+                const i = this.mass > 5001 ? 1 : 0
                 gradient.addColorStop(0, sun_colors[i][0]);
                 gradient.addColorStop(0.8, sun_colors[i][1]);
                 gradient.addColorStop(1, sun_colors[i][2]);
-                ctx.shadowColor = this.mass > 2500 ? "white" : "yellow";
-                ctx.shadowBlur = 32;
+                ctx.shadowColor = this.mass > 5001 ? "white" : "yellow";
+                ctx.shadowBlur = 25 + Math.round(Math.random() * 7);
                 ctx.fillStyle = gradient;                 
             } else {
                 ctx.shadowBlur = 0;

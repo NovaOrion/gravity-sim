@@ -15,6 +15,7 @@ export class Scene implements IScene {
     public postCalc: (() => void) | null = null;
     public objects = OrderedMap<string, ISceneObject>();    
     public showVelocityVector: boolean = false;
+    public showAccelerationVector: boolean = false;
 
     constructor(public ctx: CanvasRenderingContext2D, public world: number, padding: number) { 
         this.padding = padding; 

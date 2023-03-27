@@ -2,8 +2,8 @@ import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewCh
 import * as _ from 'lodash';
 import { AppMode, hitTestCircle, ICircle, IScene, ISceneObject, IVector, SymState, uuid } from 'src/common/common';
 import { Vector } from 'src/common/vector';
-import { Ball, IBallOptions } from 'src/papa/ball';
-import { Scene } from 'src/papa/scene';
+import { Ball, IBallOptions } from 'src/simulator/ball';
+import { Scene } from 'src/simulator/scene';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +16,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public world = 1000;  
   public title = 'Maria Gravity Project';  
   public mass = 2;
+  public ball_mass = 2;
   public trail = 100;
   public fps = 60;
   public isSideNavOpen=true;
@@ -34,6 +35,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public lockSun: boolean = true;
   public start_drawing: IVector | null = null;
   public showVelocityVector: boolean = false;
+  public showAccelerationVector: boolean = false;
 
   /**
    * Constructor for main app component
@@ -67,7 +69,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (!this.scene) return;
     const colors = ["greed", "red", "yellow", "#AED6F1", "white", "#F5CBA7", "pink", "orange", "cyan"];
     
-    let r = 3 + Math.random() * (this.mode === AppMode.EarthGravity ? 10 : 1);
+    let r = 3 + Math.random() * (this.mode === AppMode.EarthGravity ? 10 : 5);
     let center;
     if (options.center) {
       center = options.center;
@@ -101,11 +103,26 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       color: _.get(options, "color", colors[Math.ceil(Math.random() * colors.length)]),
       speed: _.get(options, "speed", Math.random() * 5),
       angle: _.get(options, "angle", Math.random() * 360),
-      mass: _.get(options, "mass", r),
+      mass: _.get(options, "mass", r * 10),
       trace: true,
       trace_limit: this.trail
     });
     this.scene?.add(ball);
+  }
+
+  public addSun(scene: IScene) {
+    if (this.mode === AppMode.SpaceGravity) {
+      const ball = new Ball("sun", {
+        center: {x: this.world / 2, y: scene.VisibleWorldHeight / 2},
+        radius: 15, 
+        color: "orange",
+        speed: 0,
+        angle: 0,
+        mass: this.mass * 1000,
+        trace: true,      
+      });
+      this.scene?.add(ball);
+    }
   }
 
   /**
@@ -118,18 +135,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.addRandomBall(this.scene, { name: `ball-${i}`});
     }
 
-    if (this.mode === AppMode.SpaceGravity) {
-      const ball = new Ball("sun", {
-        center: {x: this.world / 2, y: this.scene.VisibleWorldHeight / 2},
-        radius: 25, 
-        color: "orange",
-        speed: 0,
-        angle: 0,
-        mass: this.mass * 1000,
-        trace: false,      
-      });
-      this.scene?.add(ball);
-    }
+    this.addSun(this.scene);
       
     this.symState = SymState.Playing;
   }
@@ -148,6 +154,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public resume(): void {
     this.symState = SymState.Playing;
     this.scene!.inPause = false;
+  }
+
+  public pad_label(str: string, num: number) {
+    return _.padStart(str, num, ' ');
   }
 
   /**
@@ -180,10 +190,23 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.mass = m;
     const sun = this.scene?.objects.get("sun") as Ball;
     sun.mass = m * 1000;
+    sun.radius = sun.mass > 5001 ? 25 : 15;
     this.scene?.updateByKey("sun", sun);
+  }
+  public onBallMassChanged(m: number): void {
+    this.ball_mass = m;        
+    this.scene?.updateWithCondition(x => x.name !== 'sun', x => {
+      if (x instanceof Ball) {
+        (x as Ball).mass = this.ball_mass * 10;
+      }
+      return x;
+    });    
   }
   public onShowVelocityVectorChanged(show: boolean) {
     this.scene!.showVelocityVector = show;
+  }
+  public onShowAccelerationVectorChanged(show: boolean) {
+    this.scene!.showAccelerationVector = show;
   }
 
   public initSym(): void {

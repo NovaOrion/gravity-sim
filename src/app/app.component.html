@@ -62,12 +62,18 @@
         </div>        
         <div class="param-field">            
             <label for="mass">Sun Mass <span class="label-dim">[{{mass}}]</span></label>
-            <mat-slider id="mass" showTickMarks discrete min="1" max="5" step="1" class="val">
+            <mat-slider id="mass" showTickMarks discrete min="1" max="10" step="1" class="val">
                 <input matSliderThumb [ngModel]="mass" (ngModelChange)="onSunMassChanged($event)" >
+            </mat-slider>
+        </div>
+        <div class="param-field">            
+            <label for="ball_mass">Planet Mass <span class="label-dim">[{{ball_mass}}]</span></label>
+            <mat-slider id="ball_mass" showTickMarks discrete min="1" max="10" step="1" class="val">
+                <input matSliderThumb [ngModel]="ball_mass" (ngModelChange)="onBallMassChanged($event)" >
             </mat-slider>
         </div>           
         <div class="param-field">            
-            <label for="trail">Trail Length <span class="label-dim">[{{trail}}]</span></label>
+            <label for="trail">Trail Length <span class="label-dim">[{{pad_label(trail+'', 3)}}]</span></label>
             <mat-slider id="trail" showTickMarks discrete min="10" max="500" step="10" class="val">
                 <input matSliderThumb [ngModel]="trail" (ngModelChange)="onTrailLengthChanged($event)">
             </mat-slider>
@@ -91,6 +97,10 @@
         <div class="param-field checkbox">            
             <label for="showVelocityVector" matTooltip="Show velocity vector">Show Velocity Vectors</label>
             <mat-slide-toggle [ngModel]="showVelocityVector" (ngModelChange)="onShowVelocityVectorChanged($event)"></mat-slide-toggle>
+        </div>
+        <div class="param-field checkbox">            
+            <label for="showAccelerationVector" matTooltip="Show acceleration vector">Show Acceleration Vectors</label>
+            <mat-slide-toggle [ngModel]="showAccelerationVector" (ngModelChange)="onShowAccelerationVectorChanged($event)"></mat-slide-toggle>
         </div>
     </mat-drawer>
 

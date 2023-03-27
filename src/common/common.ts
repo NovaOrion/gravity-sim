@@ -1,4 +1,5 @@
 import {OrderedMap} from 'immutable';
+import * as _ from 'lodash';
 
 export interface ISceneObject {
     name: string;
@@ -41,6 +42,7 @@ export interface IScene {
     mode: AppMode;
     inPause: boolean;
     showVelocityVector: boolean;
+    showAccelerationVector: boolean;
 }
 export interface IPoint {
     x: number;
