@@ -34,7 +34,7 @@
         </div>
         <div class="param-field">            
             <label for="gravity" matTooltip="Gravity strength">Gravity <span class="label-dim">[{{gravity}}]</span></label>
-            <mat-slider id="gravity" showTickMarks discrete min="0" max="1" step="0.1" class="val">
+            <mat-slider id="gravity" showTickMarks discrete min="0" max="0.5" step="0.05" class="val">
                 <input matSliderThumb [ngModel]="gravity" (ngModelChange)="onGravityChanged($event)">
             </mat-slider>
         </div>      

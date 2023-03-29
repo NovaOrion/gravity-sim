@@ -119,7 +119,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         speed: 0,
         angle: 0,
         mass: this.mass * 1000,
-        trace: true,      
+        trace: true,    
+        trace_limit: this.trail  
       });
       this.scene?.add(ball);
     }
@@ -242,11 +243,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       }
 
       this.canvas.nativeElement.addEventListener("mousedown", e => {
-        if (this.mode !== AppMode.SpaceGravity || this.symState !== SymState.Playing) return;
+        if (this.symState !== SymState.Playing) return;
         this.start_drawing = new Vector(e.clientX, e.clientY);
       });
       this.canvas.nativeElement.addEventListener("mouseup", e => {
-        if (this.mode !== AppMode.SpaceGravity || this.symState !== SymState.Playing || this.start_drawing === null) return;
+        if (this.symState !== SymState.Playing || this.start_drawing === null) return;
         const end_drawing = new Vector(e.clientX, e.clientY);
         const angle = end_drawing.sub(this.start_drawing!).angle();
         const rect = this.canvas.nativeElement.getBoundingClientRect();
