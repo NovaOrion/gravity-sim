@@ -43,6 +43,7 @@ export interface IScene {
     inPause: boolean;
     showVelocityVector: boolean;
     showAccelerationVector: boolean;
+    playSound: boolean;
 }
 export interface IPoint {
     x: number;
@@ -91,7 +92,7 @@ export function hitTestCircle(c1: ICircle, c2: ICircle): boolean {
 
 export enum AppMode {
     About, 
-    EarthGravity, 
+    SurfaceGravity, 
     SpaceGravity
 }
 

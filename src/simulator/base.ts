@@ -1,6 +1,6 @@
 import { IPoint, IScene, ISceneObject, ISize, IVector } from "src/common/common";
 
-export class BaseObject implements ISceneObject {
+export abstract class BaseObject implements ISceneObject {
     
     public enabled: boolean = true;
     public trace: boolean = false;    
@@ -62,7 +62,5 @@ export class BaseObject implements ISceneObject {
         }
     }
 
-    draw(scene: IScene): void {
-        
-    }
+    abstract draw(scene: IScene) : void;
 }
