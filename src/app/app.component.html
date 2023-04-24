@@ -1,7 +1,7 @@
 <mat-toolbar color="primary">
-    <span>Maria's Gravity Sim - {{mode === AppMode.EarthGravity ? 'Earth Gravity' : mode === AppMode.SpaceGravity ? 'Space Gravity' : 'About'}}</span>
+    <span>Maria's Gravity Sim - {{mode === AppMode.SurfaceGravity ? 'Surface Gravity' : mode === AppMode.SpaceGravity ? 'Space Gravity' : 'About'}}</span>
     <span class="spacer"></span>
-    <button mat-icon-button matTooltip="Earth View" (click)="toggleMode(AppMode.EarthGravity)">
+    <button mat-icon-button matTooltip="Surface View" (click)="toggleMode(AppMode.SurfaceGravity)">
         <i class="fa-solid fa-earth-americas"></i>
     </button>
     <button mat-icon-button matTooltip="Space View" (click)="toggleMode(AppMode.SpaceGravity)">
@@ -12,7 +12,7 @@
     </button>
 </mat-toolbar>
 <mat-drawer-container class="content" autosize *ngIf="mode!==AppMode.About" [ngSwitch]="mode">
-    <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen" *ngSwitchCase="AppMode.EarthGravity">
+    <mat-drawer #drawer class="sidenav" mode="side" [opened]="isSideNavOpen" *ngSwitchCase="AppMode.SurfaceGravity">
         <p style="padding-top: 8px">Parameters</p>   
         <div class="param-field">            
             <label for="fps" matTooltip="Animation Frames Per Second">FPS <span class="label-dim">[{{fps}}]</span></label>
@@ -107,8 +107,11 @@
     <div class="sidenav-content" (resized)="resize()">
         <canvas #stage id="stage"></canvas>        
     </div>
+
 </mat-drawer-container>
 <div class="footer" *ngIf="mode!==AppMode.About;else elseBlock;">
+    <label style="padding-right: 1em; color: white">Sounds</label>
+    <mat-slide-toggle [ngModel]="playSound" (ngModelChange)="togglePlaySound($event)" [title]="playSound?'Mute sounds':'Play sounds'" style="margin-right: 2em"></mat-slide-toggle>
     <button mat-raised-button color="primary" class="footer-button" [disabled]="symState!==SymState.Stopped" (click)="start()">
         Start Simulator
     </button>
@@ -124,5 +127,35 @@
     <mat-slide-toggle [(ngModel)]="isSideNavOpen" [title]="isSideNavOpen?'Toggle to close Side Panel':'Toggle to open Side Panel'"></mat-slide-toggle>    
 </div>
 <ng-template #elseBlock>
-    About
+    <div id="title">
+        <h1>About This Project</h1>
+    </div>
+    <div id="aboutMyself">
+        <div style="text-align: center; width: 100%"><img src="assets/galaxy.jpg"/></div>
+        <p>This research project aims to study key concepts of computational physics by creating a simulation of gravity, with a focus on its implementation and design of the simulation itself. The project involves building up a solid knowledge of physics and differential equations that are required for accurate simulations and exploring the limits of simulations compared to real-life experimentation. It takes the concepts of physics and programming and demonstrates their intersection, showing how physics simulations are important for scientists to better visualize and understand the world around us. By making a fun yet educational web application that can be used by a variety of people, I want to emphasize the importance of a well-designed user interface in creating a positive user experience. My ultimate goal is to demonstrate my expertise and capabilities in creating a complex program through this project.</p>        
+    </div>
+    <div id="links-box">
+        <div>
+            <a href="https://github.com/NovaOrion/gravity-sim.git" target="_blank" class="links">Link to Code on GitHub</a>
+        </div>
+        <div>
+            <a href="/src/SeniorThesisDraft.pdf" download class="links">Download PDF</a>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 2em">
+        <div style="display: block; font-weight: bold" >Let's start</div>
+        <div style="margin-top: 1em;">
+            <button (click)="toggleMode(AppMode.SurfaceGravity)" style="margin-right: 1em">Surface Graviry Sym</button>
+            <button (click)="toggleMode(AppMode.SpaceGravity)">Space Gravity Sym</button>
+        </div>        
+    </div>
 </ng-template>
+<audio id="hit1">
+    <source src="assets/hit1.mp3" type="audio/mpeg" />
+</audio>
+<audio id="hit2">
+    <source src="assets/hit2.mp3" type="audio/mpeg" />
+</audio>
+<audio id="hit3">
+    <source src="assets/hit3.mp3" type="audio/mpeg" />
+</audio>

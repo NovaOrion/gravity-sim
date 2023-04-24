@@ -29,13 +29,15 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public gravity: number = 0.4;
   public elasticity: number = 0.9;
   public friction: number = 0.06;
-  public mode: AppMode = AppMode.SpaceGravity;
+  public mode: AppMode = AppMode.About;
   public AppMode = AppMode;
   public SymState = SymState;
   public lockSun: boolean = true;
   public start_drawing: IVector | null = null;
   public showVelocityVector: boolean = false;
   public showAccelerationVector: boolean = false;
+  public playSound: boolean = false;
+
 
   /**
    * Constructor for main app component
@@ -44,12 +46,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   constructor(private zone: NgZone) {    
   }
 
+  public togglePlaySound(playSound: boolean) {
+    this.playSound = playSound;
+    if (this.scene) {
+      this.scene.playSound = this.playSound;
+    }
+  }
+
   public toggleMode(mode: AppMode): void {
     this.mode = mode;
-    this.num_of_balls = AppMode.EarthGravity ? 10 : 0;
-    this.trail = AppMode.EarthGravity ? 100 : 100;
+    this.num_of_balls = AppMode.SurfaceGravity ? 10 : 0;
+    this.trail = AppMode.SurfaceGravity ? 100 : 100;
     this.stop();
-    this.initSym();
+    _.delay(() => this.initSym(), 100);
   }
 
   private canStartHere(c2: ICircle): boolean {    
@@ -69,7 +78,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (!this.scene) return;
     const colors = ["greed", "red", "yellow", "#AED6F1", "white", "#F5CBA7", "pink", "orange", "cyan"];
     
-    let r = 3 + Math.random() * (this.mode === AppMode.EarthGravity ? 10 : 5);
+    let r = 3 + Math.random() * (this.mode === AppMode.SurfaceGravity ? 10 : 5);
     let center;
     if (options.center) {
       center = options.center;
@@ -165,10 +174,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
    * Stop Simulation
    */
   public stop(): void {
-    this.scene?.clear(); 
-    this.scene!.inPause = false;   
+    if (this.scene) {
+      this.scene?.clear(); 
+      this.scene!.inPause = false;   
+    }
     this.symState = SymState.Stopped;
-
   }
 
   public onTrailLengthChanged(trail_length: number): void {
@@ -214,68 +224,68 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (this.mode === AppMode.About) {
       return;
     }
-    _.delay(() => {
-      this.ctx = this.canvas.nativeElement.getContext("2d");
-      this.setCanvasSize();    
 
-      // Scene initialization
-      this.scene = new Scene(this.ctx!, this.world, this.borderSize);
-      this.scene.mode = this.mode;
-      this.scene.gravity = this.gravity;
-      this.scene.elasticity = this.elasticity;
-      this.scene.friction = this.friction;
+    this.ctx = this.canvas.nativeElement.getContext("2d");
+    this.setCanvasSize();    
 
-      this.scene.postCalc = () => {
-        if (this.mode === AppMode.SpaceGravity && this.lockSun) {
-          const sun = this.scene?.objects.get('sun');
-          if (sun && this.scene) {
-            const sunVector = new Vector(sun.position.x, sun.position.y);
-            const centerVector = new Vector(this.world / 2, this.scene.VisibleWorldHeight / 2);
-            const pan = centerVector.sub(sunVector);
-            if (pan.magnitude > 0.001) {              
-              this.scene.updateWithCondition(x => true, x => {                
-                x.pan(pan);
-                return x;
-              });
-            }
+    // Scene initialization
+    this.scene = new Scene(this.ctx!, this.world, this.borderSize);
+    this.scene.mode = this.mode;
+    this.scene.gravity = this.gravity;
+    this.scene.elasticity = this.elasticity;
+    this.scene.friction = this.friction;
+    this.scene.playSound = this.playSound;
+
+    this.scene.postCalc = () => {
+      if (this.mode === AppMode.SpaceGravity && this.lockSun) {
+        const sun = this.scene?.objects.get('sun');
+        if (sun && this.scene) {
+          const sunVector = new Vector(sun.position.x, sun.position.y);
+          const centerVector = new Vector(this.world / 2, this.scene.VisibleWorldHeight / 2);
+          const pan = centerVector.sub(sunVector);
+          if (pan.magnitude > 0.001) {              
+            this.scene.updateWithCondition(x => true, x => {                
+              x.pan(pan);
+              return x;
+            });
           }
         }
       }
+    }
 
-      this.canvas.nativeElement.addEventListener("mousedown", e => {
-        if (this.symState !== SymState.Playing) return;
-        this.start_drawing = new Vector(e.clientX, e.clientY);
-      });
-      this.canvas.nativeElement.addEventListener("mouseup", e => {
-        if (this.symState !== SymState.Playing || this.start_drawing === null) return;
-        const end_drawing = new Vector(e.clientX, e.clientY);
-        const angle = end_drawing.sub(this.start_drawing!).angle();
-        const rect = this.canvas.nativeElement.getBoundingClientRect();
-        const pos = {
-          x: this.start_drawing!.x - rect.left,
-          y: this.start_drawing!.y - rect.top
-        };
-        this.addRandomBall(this.scene!, {
-          center: { 
-            x: this.scene!.worldX(pos.x),
-            y: this.scene!.worldY(pos.y)
-          },
-          angle: -1 * angle * 180 / Math.PI, // into degrees,            
-        });
-
-        this.start_drawing = null;
+    this.canvas.nativeElement.addEventListener("mousedown", e => {
+      if (this.symState !== SymState.Playing) return;
+      this.start_drawing = new Vector(e.clientX, e.clientY);
+    });
+    this.canvas.nativeElement.addEventListener("mouseup", e => {
+      if (this.symState !== SymState.Playing || this.start_drawing === null) return;
+      const end_drawing = new Vector(e.clientX, e.clientY);
+      const angle = end_drawing.sub(this.start_drawing!).angle();
+      const rect = this.canvas.nativeElement.getBoundingClientRect();
+      const pos = {
+        x: this.start_drawing!.x - rect.left,
+        y: this.start_drawing!.y - rect.top
+      };
+      this.addRandomBall(this.scene!, {
+        center: { 
+          x: this.scene!.worldX(pos.x),
+          y: this.scene!.worldY(pos.y)
+        },
+        angle: -1 * angle * 180 / Math.PI, // into degrees,            
       });
 
-      this.zone.runOutsideAngular(() =>     
-        this.animate()
-      );
-    }, 10);
+      this.start_drawing = null;
+    });
+
+    this.zone.runOutsideAngular(() =>     
+      this.animate()
+    );
   }
 
   /**
    * The DOM is loaded and all bindings are available
    */
-  ngAfterViewInit(): void {   
+  ngAfterViewInit(): void {    
     this.initSym();   
   }
 
@@ -283,7 +293,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
    * Clear canvas
    */
   public clear(): void {
-    if (!this.ctx) return;
+    if (!this.ctx || !this.canvas || !this.canvas.nativeElement) return;
     this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
   }
 

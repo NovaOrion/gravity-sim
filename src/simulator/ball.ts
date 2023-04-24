@@ -27,6 +27,10 @@ export class Ball extends BaseObject implements ICircle {
     private y_velocity: number = 0;
     private acceleration_vector: IVector | null = null;
 
+    protected wallHitSound: HTMLAudioElement | null = null;
+    protected ballHitSound: HTMLAudioElement | null = null;
+    protected sunHitSound: HTMLAudioElement | null = null;
+
     constructor(name: string, public options: IBallOptions) {        
         super(name);
         this.position = this.options.center;
@@ -45,7 +49,7 @@ export class Ball extends BaseObject implements ICircle {
     }
 
     private update(scene?: IScene): void {   
-        if (scene && scene.gravity && scene.mode === AppMode.EarthGravity) {
+        if (scene && scene.gravity && scene.mode === AppMode.SurfaceGravity) {
             this.y_velocity -= scene.gravity;
         }               
 
@@ -72,30 +76,35 @@ export class Ball extends BaseObject implements ICircle {
         this.position.y += this.y_velocity; 
     }
 
-    private testWalls(scene: IScene): void {
+    private testWalls(scene: IScene): boolean {
         const bw = this.bounds.width / 2;
         const bh = this.bounds.height / 2;
 
         if (scene.X(this.position.x + bw) > scene.width) {
             this.x_velocity = -1 * this.x_velocity;
-            this.position.x = scene.width / scene.scale - bw - 1;            
+            this.position.x = scene.width / scene.scale - bw - 1;   
+            return true;         
         } else if (scene.X(this.position.x - bw) < scene.X(0)) {
             this.x_velocity = -1 * this.x_velocity;
             this.position.x = bw + 1;
+            return true;
         } else if (this.position.y > scene.VisibleWorldHeight) {
             this.y_velocity = -1 * this.y_velocity;
             this.position.y = scene.VisibleWorldHeight - bh - 1;
+            return true;
         } else if (scene.Y(this.position.y - bh) >= scene.Y(0)) {
-            if (scene && scene.gravity && scene.elasticity && scene.mode === AppMode.EarthGravity) {
+            if (scene && scene.gravity && scene.elasticity && scene.mode === AppMode.SurfaceGravity) {
                 this.y_velocity = -1 * this.y_velocity * scene.elasticity;
             } else {
                 this.y_velocity = -1 * this.y_velocity;
             }
-            if (scene && scene.gravity && scene.friction && scene.mode === AppMode.EarthGravity) {
+            if (scene && scene.gravity && scene.friction && scene.mode === AppMode.SurfaceGravity) {
                 this.x_velocity = this.x_velocity - (this.x_velocity * scene.friction);
             } 
             this.position.y = bh + ((scene.mode === AppMode.SpaceGravity) ? 1 : 0);
+            return true;
         }
+        return false;
     }
 
     private process_collide(scene: IScene, ball: Ball) {        
@@ -146,28 +155,46 @@ export class Ball extends BaseObject implements ICircle {
             }
             return false;
         });
-        if (hit_object) {
+        if (hit_object) {            
             const b = hit_object as Ball;
-            if (scene.mode === AppMode.SpaceGravity && b.name === 'sun') {
+            if (scene.mode === AppMode.SpaceGravity && b.name === 'sun') {                
+                if (this.sunHitSound && scene.playSound) {
+                    (this.sunHitSound.cloneNode(true) as HTMLAudioElement).play();
+                }
                 scene.remove(this.name);
             } else {
+                if (this.ballHitSound && scene.playSound) {
+                    (this.ballHitSound.cloneNode(true) as HTMLAudioElement).play();
+                }
                 this.process_collide(scene, b);
             }
-        }
-        
+        }        
     }
 
     override delta(scene: IScene): void {
         super.delta(scene);        
         this.update(scene);
-        if (scene.mode === AppMode.EarthGravity) {
-            this.testWalls(scene); 
+        if (scene.mode === AppMode.SurfaceGravity) {
+            const hitWall = this.testWalls(scene); 
+            if (hitWall && this.wallHitSound && this.y_velocity > 3 && scene.playSound) {
+                (this.wallHitSound.cloneNode(true) as HTMLAudioElement).play();
+            }
         }
         scene.updateByKey(this.name, this);
     }
 
     override draw(scene: IScene): void {
-        super.draw(scene);
+
+        if (!this.wallHitSound) {
+            this.wallHitSound = document.getElementById("hit1") as HTMLAudioElement;
+        }
+        if (!this.ballHitSound) {
+            this.ballHitSound = document.getElementById("hit2") as HTMLAudioElement;
+        }
+        if (!this.sunHitSound) {
+            this.sunHitSound = document.getElementById("hit3") as HTMLAudioElement;
+        }
+
         const ctx = scene.ctx;
         if (ctx && this.radius > 0) {
             const x = scene.X(this.position.x);

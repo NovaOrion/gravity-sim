@@ -10,12 +10,13 @@ export class Scene implements IScene {
     public gravity: number = 0;
     public elasticity: number = 0;
     public friction: number = 0;
-    public mode: AppMode = AppMode.EarthGravity;
+    public mode: AppMode = AppMode.SurfaceGravity;
     public inPause: boolean = false;    
     public postCalc: (() => void) | null = null;
     public objects = OrderedMap<string, ISceneObject>();    
     public showVelocityVector: boolean = false;
     public showAccelerationVector: boolean = false;
+    public playSound: boolean = false;
 
     constructor(public ctx: CanvasRenderingContext2D, public world: number, padding: number) { 
         this.padding = padding; 
